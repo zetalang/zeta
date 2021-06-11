@@ -7,7 +7,7 @@ use colored::Colorize;
 
 // Crate Level Imports
 use crate::utils::App;
-use crate::VERSION;
+use crate::utils::VERSION;
 
 // Super Imports
 use super::Command;

@@ -1,18 +1,17 @@
 // Std Imports
-use std::sync::Arc;
+use std::{sync::Arc, vec};
 
 // Library Imports
 use anyhow::Result;
 use async_trait::async_trait;
 use colored::Colorize;
 
-use crate::{VERSION, utils::App};
+use crate::{utils::App, utils::VERSION};
 
 // Super Imports
 use super::Command;
 
 pub struct Compile {}
-
 
 #[async_trait]
 impl Command for Compile {
@@ -34,18 +33,38 @@ Flags:
             "[commands]".bright_purple(),
             "[flags]".bright_purple(),
             "<filename>".bright_blue(),
-						"--useclang, -ucg".bright_blue(),
-						"--usegcc, -ugcc ".bright_blue(),
-						"--verbose, -vb  ".bright_blue(),
-						"--release, -r   ".bright_blue(),
+            "--useclang, -ucg".bright_blue(),
+            "--usegcc, -ugcc ".bright_blue(),
+            "--verbose, -vb  ".bright_blue(),
+            "--release, -r   ".bright_blue(),
             asterisk = "*".bright_magenta().bold(),
         )
     }
 
     async fn exec(app: Arc<App>) -> Result<()> {
+        let acceptedflags: Vec<&str> = vec![
+            "--useclang",
+            "--ucg",
+            "--usegcc",
+            "--ugcc",
+            "--verbose",
+            "--vb",
+            "--release",
+            "--r",
+            "-useclang",
+            "-ucg",
+            "-usegcc",
+            "-ugcc",
+            "-verbose",
+            "-vb",
+            "-release",
+            "-r",
+        ];
+        let flags = app.filter_flag(&acceptedflags);
+
         let args = app.args.clone();
         let command: &str = args[0].as_str();
-        println!("{:#?}\n {:#?}\n {:#?}", command, args, app.flags);
+        println!("{:#?} {:#?}", flags, app.flags);
         Ok(())
     }
 }

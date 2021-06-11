@@ -1,11 +1,12 @@
-use lazy_static::lazy_static;
 use colored::Colorize;
+use lazy_static::lazy_static;
 use std::{env, path::PathBuf};
 
 lazy_static! {
-	pub static ref ERROR_TAG: String = "error".red().bold().to_string();
+    pub static ref ERROR_TAG: String = "error".red().bold().to_string();
 }
 
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Debug)]
 pub struct App {
     pub current_dir: PathBuf,
@@ -40,5 +41,32 @@ impl App {
         self.flags
             .iter()
             .any(|flag| flags.iter().any(|search_flag| flag == search_flag))
+    }
+
+    pub fn filter_flag(&self, accepted_flags_arg: &[&str]) -> Vec<String> {
+        let accepted_flags: Vec<String> = self
+            .flags
+            .iter()
+            .filter(|item| accepted_flags_arg.contains(&item.as_str()))
+            .cloned()
+            .collect();
+        if accepted_flags.len() != self.flags.len() {
+            let s: Vec<String> = self
+                .flags
+                .iter()
+                .filter(|item| !accepted_flags_arg.contains(&item.as_str()))
+                .cloned()
+                .collect();
+            let mut i: String = String::new();
+            for l in 0..s.len() {
+                if l != 0 {
+                    i = i + &" and " + &s[l];
+                } else {
+                    i = s[l].clone();
+                }
+            }
+            println!("{}: Not a valid flag {}", "Warning".yellow().bold(), i);
+        }
+        accepted_flags
     }
 }

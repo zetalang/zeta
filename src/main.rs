@@ -1,21 +1,19 @@
-mod utils;
 mod commands;
+mod utils;
 // mod errors;
-use std::{process::exit, time::Instant};
+use std::process::exit;
 // use errors::Error;
 use colored::Colorize;
-use utils::App;
 use commands::AppCommand;
-
-const VERSION: &str = env!("CARGO_PKG_VERSION");
+use utils::App;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<(), anyhow::Error> {
     let app = App::initialize();
     let mut cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help\
-   if app.args.len() > 0 {
+    if app.args.len() > 0 {
         cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help
-    }else{
+    } else {
         cmd = AppCommand::current().unwrap_or(AppCommand::Help);
     }
 
@@ -24,16 +22,10 @@ async fn main() -> anyhow::Result<(), anyhow::Error> {
         return Ok(());
     }
     if app.has_flag(&["--version", "-v"]) {
-        println!(
-            "torqc v{}",
-            VERSION.bright_green().bold()
-        );
+        println!("torqc v{}", utils::VERSION.bright_green().bold());
         exit(0);
     }
-    let start = Instant::now();
     cmd.run(app).await?;
-    let end = Instant::now();
-    println!("Finished in {:.2}s", (end - start).as_secs_f32());
 
     Ok(())
 }
