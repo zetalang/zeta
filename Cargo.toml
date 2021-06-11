@@ -1,5 +1,5 @@
 [package]
-name = "boltc"
+name = "torqc"
 version = "0.1.0"
 authors = ["Varun Potti <potti.varun07@gmail.com>"]
 edition = "2018"

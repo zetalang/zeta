@@ -12,7 +12,12 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[tokio::main]
 async fn main() -> anyhow::Result<(), anyhow::Error> {
     let app = App::initialize();
-    let cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help
+    let mut cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help\
+   if app.args.len() > 0 {
+        cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help
+    }else{
+        cmd = AppCommand::current().unwrap_or(AppCommand::Help);
+    }
 
     if app.has_flag(&["--help", "-h"]) {
         println!("{}", cmd.help());
@@ -20,7 +25,7 @@ async fn main() -> anyhow::Result<(), anyhow::Error> {
     }
     if app.has_flag(&["--version", "-v"]) {
         println!(
-            "boltc v{}",
+            "torqc v{}",
             VERSION.bright_green().bold()
         );
         exit(0);
