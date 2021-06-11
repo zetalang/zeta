@@ -1,5 +1,5 @@
 // Std Imports
-use std::{sync::Arc, vec};
+use std::{io::Read, process::exit, sync::Arc, vec};
 
 // Library Imports
 use anyhow::Result;
@@ -55,8 +55,13 @@ Flags:
         let flags = app.filter_flag(&acceptedflags);
 
         let args = app.args.clone();
-        let command: &str = args[0].as_str();
-        // println!("{:#?} {:#?}", flags, app.flags);
+        let filename: &str = args[0].as_str();
+        let mut file =
+            std::fs::File::open(filename).unwrap_or_else(|e| app.error(e.to_string().as_str()));
+        let mut f_contents = String::new();
+        file.read_to_string(&mut f_contents)
+            .unwrap_or_else(|e| app.error(e.to_string().as_str()));
+        println!("{}", f_contents);
         Ok(())
     }
 }

@@ -1,6 +1,6 @@
 use colored::Colorize;
 use lazy_static::lazy_static;
-use std::{env, path::PathBuf};
+use std::{env, path::PathBuf, process::exit};
 
 lazy_static! {
     pub static ref ERROR_TAG: String = "error".red().bold().to_string();
@@ -36,7 +36,15 @@ impl App {
             flags,
         }
     }
-
+    pub fn error(&self, error: &str) -> ! {
+        eprintln!(
+            "{}: {}\n  {}",
+            "Error".red().bold(),
+            "Caused By".truecolor(190, 190, 190).italic().bold(),
+            error.truecolor(195, 195, 195).bright_white()
+        );
+        exit(0)
+    }
     pub fn has_flag(&self, flags: &[&str]) -> bool {
         self.flags
             .iter()
