@@ -1,5 +1,5 @@
-# boltc
-The official bolt compiler
+# torqc
+The official torq  compiler
 
 
 
