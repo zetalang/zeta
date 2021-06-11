@@ -11,7 +11,7 @@ use utils::App;
 async fn main() -> anyhow::Result<(), anyhow::Error> {
     let app = App::initialize();
     let mut cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help\
-    if app.args.len() > 0 {
+    if !app.args.is_empty() {
         cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help
     } else {
         cmd = AppCommand::current().unwrap_or(AppCommand::Help);

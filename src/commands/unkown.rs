@@ -44,27 +44,19 @@ Flags:
     async fn exec(app: Arc<App>) -> Result<()> {
         let acceptedflags: Vec<&str> = vec![
             "--useclang",
-            "--ucg",
-            "--usegcc",
-            "--ugcc",
-            "--verbose",
-            "--vb",
-            "--release",
-            "--r",
-            "-useclang",
             "-ucg",
-            "-usegcc",
+            "--usegcc",
             "-ugcc",
-            "-verbose",
+            "--verbose",
             "-vb",
-            "-release",
+            "--release",
             "-r",
         ];
         let flags = app.filter_flag(&acceptedflags);
 
         let args = app.args.clone();
         let command: &str = args[0].as_str();
-        println!("{:#?} {:#?}", flags, app.flags);
+        // println!("{:#?} {:#?}", flags, app.flags);
         Ok(())
     }
 }

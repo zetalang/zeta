@@ -58,11 +58,11 @@ impl App {
                 .cloned()
                 .collect();
             let mut i: String = String::new();
-            for l in 0..s.len() {
+            for (l, val) in s.iter().enumerate() {
                 if l != 0 {
-                    i = i + &" and " + &s[l];
+                    i = i + " and " + val;
                 } else {
-                    i = s[l].clone();
+                    i = val.clone();
                 }
             }
             println!("{}: Not a valid flag {}", "Warning".yellow().bold(), i);
