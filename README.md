@@ -15,7 +15,7 @@
 
 # Torq
 
-## What makes Torq the goto lang for creating CLI's?
+## What makes Torq the goto language for creating CLI's?
 
 - Smaller Executables
 - Inbuilt argument and flag parser
