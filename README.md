@@ -20,8 +20,7 @@
 - Smaller Executables
 - Inbuilt argument and flag parser
 - Your code will work anywhere in any OS
-- Fast and by fast we mean
-  - #### Lightning fast
+- Fast and by fast we mean Lightning fast
 - Better error handling
   - We only show errors which the user understands
 - Rich standard library
