@@ -92,7 +92,7 @@ use std::str::Chars;
 
 #[derive(Debug)]
 pub struct TokenParser<'a> {
-    pub tokens: Vec<Token>,
+    pub tokens: Vec<TokenType>,
     iter: Peekable<Chars<'a>>,
 }
 
@@ -104,13 +104,19 @@ impl<'a> TokenParser<'a> {
         }
     }
 
-    pub fn push(&mut self, token: Token) {
+    pub fn push(&mut self, token: Token, value: &str) {
         self.iter.next();
-        self.tokens.push(token);
+        self.tokens.push(TokenType {
+            token: token,
+            val: value.to_string(),
+        });
     }
 
-    pub fn push_back(&mut self, token: Token) {
-        self.tokens.push(token);
+    pub fn push_back(&mut self, token: Token, value: &str) {
+        self.tokens.push(TokenType {
+            token: token,
+            val: value.to_string(),
+        });
     }
 
     pub fn next(&mut self) -> Option<char> {
@@ -130,6 +136,12 @@ impl<'a> TokenParser<'a> {
         self.iter.peeking_take_while(|c| func(c)).collect()
     }
 }
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub struct TokenType {
+    token: Token,
+    val: String,
+}
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Keyword {
     Int,
