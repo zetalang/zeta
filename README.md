@@ -24,7 +24,7 @@
 - Better error handling
   - We only show errors which the user understands
 - Rich standard library
-- Memory safety is gauranteed with no slow downs in your code
+- Memory safety is guaranteed with no slow downs in your code
 
 ## How can I run this
 
