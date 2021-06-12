@@ -1,0 +1,5 @@
+use std::getArgs
+async main(idk:bool): bool {
+	let (arg, flag) = getArgs()
+}
+ 

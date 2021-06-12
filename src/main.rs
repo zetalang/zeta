@@ -1,4 +1,5 @@
 mod commands;
+mod lexer;
 mod utils;
 // mod errors;
 use std::process::exit;
@@ -10,12 +11,7 @@ use utils::App;
 #[tokio::main]
 async fn main() -> anyhow::Result<(), anyhow::Error> {
     let app = App::initialize();
-    let mut cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help\
-    if !app.args.is_empty() {
-        cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help
-    } else {
-        cmd = AppCommand::current().unwrap_or(AppCommand::Help);
-    }
+    let cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help\
 
     if app.has_flag(&["--help", "-h"]) {
         println!("{}", cmd.help());

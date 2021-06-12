@@ -1,12 +1,12 @@
 // Std Imports
-use std::{io::Read, process::exit, sync::Arc, vec};
+use std::{io::Read, sync::Arc, vec};
 
 // Library Imports
 use anyhow::Result;
 use async_trait::async_trait;
 use colored::Colorize;
 
-use crate::{utils::App, utils::VERSION};
+use crate::{lexer::tokenizer::tokenizer, utils::App, utils::VERSION};
 
 // Super Imports
 use super::Command;
@@ -61,7 +61,7 @@ Flags:
         let mut f_contents = String::new();
         file.read_to_string(&mut f_contents)
             .unwrap_or_else(|e| app.error(e.to_string().as_str()));
-        println!("{}", f_contents);
+        println!("{:#?}", tokenizer(&f_contents));
         Ok(())
     }
 }

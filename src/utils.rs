@@ -16,6 +16,7 @@ pub struct App {
 
 impl App {
     pub fn initialize() -> Self {
+        console::colors_enabled();
         let current_dir = env::current_dir().unwrap();
 
         let cli_args: Vec<_> = std::env::args().collect();
@@ -68,7 +69,7 @@ impl App {
             let mut i: String = String::new();
             for (l, val) in s.iter().enumerate() {
                 if l != 0 {
-                    i = i + " and " + val;
+                    i = i + ", " + val;
                 } else {
                     i = val.clone();
                 }
