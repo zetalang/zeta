@@ -13,8 +13,6 @@ tokio = { version = "1.5.0", features = ["full"] }
 lazy_static = "1.4.0"
 anyhow="1.0.41"
 async-trait="0.1.50"
-regex = "0.1"
-regex-macro = "0.1.1"
 
 # Terminal Libs
 console="0.14.1"
