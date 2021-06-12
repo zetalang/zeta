@@ -15,13 +15,12 @@
 
 # Torq
 
-## What makes Torq the goto lang for creating CLI's?
+## What makes Torq the goto language for creating CLI's?
 
 - Smaller Executables
 - Inbuilt argument and flag parser
 - Your code will work anywhere in any OS
-- Fast and by fast we mean
-  - #### Lightning fast
+- Fast and by fast we mean Lightning fast
 - Better error handling
   - We only show errors which the user understands
 - Rich standard library
