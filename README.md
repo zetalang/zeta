@@ -8,6 +8,7 @@
 <img src="https://img.shields.io/github/downloads/torq-lang/torqc/total?label=Downloads" />
 <img src="https://img.shields.io/github/languages/code-size/torq-lang/torqc?label=Code%20Size" />
 <img src="https://img.shields.io/github/stars/torq-lang/torqc?label=Stars&logo=github" />
+<img src="https://img.shields.io/tokei/lines/github/torq-lang/torqc" />
 <a href="https://discord.com/invite/wY9NsfGFDP">
   <img src="https://img.shields.io/discord/852756512060342342?color=7389D8&label=Discord&logo=discord&logoColor=ffffff" alt="discord - users online" />
 </a>
