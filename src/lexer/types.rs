@@ -92,7 +92,7 @@ use std::str::Chars;
 
 #[derive(Debug)]
 pub struct TokenParser<'a> {
-    pub tokens: Vec<TokenType>,
+    pub tokens: Vec<Token>,
     iter: Peekable<Chars<'a>>,
 }
 
@@ -104,19 +104,13 @@ impl<'a> TokenParser<'a> {
         }
     }
 
-    pub fn push(&mut self, token: Token, value: &str) {
+    pub fn push(&mut self, token: Token) {
         self.iter.next();
-        self.tokens.push(TokenType {
-            token: token,
-            val: value.to_string(),
-        });
+        self.tokens.push(token);
     }
 
-    pub fn push_back(&mut self, token: Token, value: &str) {
-        self.tokens.push(TokenType {
-            token: token,
-            val: value.to_string(),
-        });
+    pub fn push_back(&mut self, token: Token) {
+        self.tokens.push(token);
     }
 
     pub fn next(&mut self) -> Option<char> {

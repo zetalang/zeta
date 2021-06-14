@@ -6,7 +6,14 @@ use anyhow::Result;
 use async_trait::async_trait;
 use colored::Colorize;
 
-use crate::{lexer::tokenizer::tokenizer, utils::App, utils::VERSION};
+use crate::{
+    lexer::{
+        parser::{self, Parser},
+        tokenizer::tokenizer,
+    },
+    utils::App,
+    utils::VERSION,
+};
 
 // Super Imports
 use super::Command;
@@ -61,7 +68,9 @@ Flags:
         let mut f_contents = String::new();
         file.read_to_string(&mut f_contents)
             .unwrap_or_else(|e| app.error(e.to_string().as_str()));
-        println!("{:#?}", tokenizer(&f_contents));
+        let tokenize = tokenizer(&f_contents);
+        let mut parse = parser::Parser::new(tokenize, app);
+        println!("{:#?}", parse.parse());
         Ok(())
     }
 }
