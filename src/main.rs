@@ -10,6 +10,7 @@ use utils::App;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<(), anyhow::Error> {
+    let time = std::time::Instant::now();
     let app = App::initialize();
     let cmd = AppCommand::current().unwrap_or(AppCommand::Unknown); // Default command is help\
 
@@ -22,6 +23,9 @@ async fn main() -> anyhow::Result<(), anyhow::Error> {
         exit(0);
     }
     cmd.run(app).await?;
-
+    println!(
+        "Completed in {}ms",
+        time.elapsed().as_secs_f64().to_string().as_str().blue()
+    );
     Ok(())
 }

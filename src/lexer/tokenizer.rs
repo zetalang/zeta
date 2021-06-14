@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use super::types::*;
 
 pub fn tokenizer(contents: &str) -> Vec<Token> {
@@ -119,12 +117,10 @@ pub fn tokenizer(contents: &str) -> Vec<Token> {
                     _ => panic!("Unknown token {:?}", multi),
                 },
             };
+        } else if c == '\n' {
+            is_close_single_line = true;
         } else {
-            if c == '\n' {
-                is_close_single_line = true;
-            } else {
-                tokens.drop();
-            }
+            tokens.drop();
         }
     }
     tokens.tokens

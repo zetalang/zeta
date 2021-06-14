@@ -1,6 +1,5 @@
 use crate::lexer::types::Token;
 
-
 #[derive(Debug, Eq, PartialEq)]
 pub enum Size {
     Int,
@@ -13,8 +12,14 @@ pub struct Variable {
     pub size: Size,
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub struct Import {
+    pub name: String,
+}
+
 #[derive(Debug)]
 pub struct Program {
+    pub imports: Vec<Import>,
     pub func: Vec<Function>,
     pub globals: Vec<Statement>,
 }
@@ -32,7 +37,6 @@ pub enum Expression {
     UnOp(UnOp, Box<Expression>),
     Int(u32),
     Char(u64),
-    Bool(u8),
     MLStr(u64),
     FunctionCall(String, Vec<Expression>),
     Variable(String),
@@ -49,7 +53,7 @@ pub enum Statement {
     If(Expression, Box<Statement>, Option<Box<Statement>>),
     While(Expression, Box<Statement>),
     Exp(Expression),
-    Compound(Vec<Statement>)
+    Compound(Vec<Statement>),
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -104,9 +108,8 @@ impl From<Token> for BinOp {
             Token::BitwiseXor => BinOp::BitwiseXor,
             Token::BitwiseOr => BinOp::BitwiseOr,
             Token::Comma => BinOp::Comma,
-            other => panic!("Token {:?} cannot be converted into a BinOp", other)
+            other => panic!("Token {:?} cannot be converted into a BinOp", other),
         }
-
     }
 }
 
@@ -116,7 +119,7 @@ impl From<Token> for UnOp {
             Token::Negation => UnOp::Negation,
             Token::LogicalNeg => UnOp::LogicalNeg,
             Token::BitComp => UnOp::BitComp,
-            other => panic!("Unsupported token {:?}, can only use: ! ~ -", other)
+            other => panic!("Unsupported token {:?}, can only use: ! ~ -", other),
         }
     }
 }

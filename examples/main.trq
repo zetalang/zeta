@@ -1,5 +1,5 @@
-// use std::getArgs
-const main = "idk"
-fn main() {
-	str idk = "idk"
+use std::getArgs
+
+fn main (arg: bool) {
+	let arg = getArgs()
 }

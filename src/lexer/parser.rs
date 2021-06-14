@@ -21,7 +21,7 @@ impl Parser {
         Parser {
             tokens: tokens.into_iter().peekable(),
             peeked: vec![],
-            app: app,
+            app,
         }
     }
     pub fn parse(&mut self) -> Program {
@@ -101,30 +101,50 @@ impl Parser {
     }
     fn main_parser(&mut self) -> Program {
         let mut functions = Vec::new();
+        let mut imports = Vec::new();
         let mut globals = Vec::new();
         while self.has_more() {
             if self.peek().unwrap() == Token::Keyword(Keyword::Func) {
                 functions.push(self.parse_function().expect("Failed to parse function"));
+            } else if self.peek().unwrap() == Token::Keyword(Keyword::Use) {
+                while let Token::Keyword(Keyword::Use) = self.next().unwrap() {
+                    imports.push(self.parse_import_statement());
+                }
             } else {
                 globals.push(self.parse_global_vars());
             }
         }
 
         Program {
+            imports,
             func: functions,
             globals: globals.into_iter().collect(),
         }
     }
+    fn parse_import_statement(&mut self) -> Import {
+        let n = match self.next() {
+            Some(Token::Identifier(name)) => match self.next() {
+                Some(Token::Colon) => {
+                    let n = self.next().unwrap();
+                    return Import {
+                        name: format!("{:#?}", n),
+                    };
+                }
+                _other => Import { name },
+            },
+            other => Import {
+                name: format!("none {:#?}", other),
+            },
+        };
+        // self.next_token();
+        n
+    }
     fn parse_global_vars(&mut self) -> Statement {
         match self.next() {
-            Some(Token::Keyword(Keyword::Const)) => {
-                let state = self.parse_declare(Size::Byte);
-                state
-            }
+            Some(Token::Keyword(Keyword::Const)) => self.parse_declare(Size::Byte),
             other => {
                 self.push(other);
-                let state = Ok(Statement::Exp(self.parse_expression()));
-                state
+                Ok(Statement::Exp(self.parse_expression()))
             }
         }
         .expect("failed to parse")
@@ -149,7 +169,7 @@ impl Parser {
 
         let mut statements = vec![];
 
-        while let Err(_) = self.peek_token(Token::CloseBrace) {
+        while self.peek_token(Token::CloseBrace).is_err() {
             let statement = self.parse_statement();
             statements.push(statement);
         }
@@ -165,47 +185,28 @@ impl Parser {
 
     fn parse_statement(&mut self) -> Statement {
         let i = match self.next() {
-            Some(Token::Keyword(Keyword::Int)) => {
-                let state = self.parse_declare(Size::Int);
-                state
-            }
-            Some(Token::Keyword(Keyword::Let)) => {
-                let state = self.parse_declare(Size::Byte);
-                state
-            }
-            Some(Token::Keyword(Keyword::Bool)) => {
-                let state = self.parse_declare(Size::Byte);
-                state
-            }
-            Some(Token::Keyword(Keyword::Const)) => {
-                let state = self.parse_declare(Size::Byte);
-                state
-            }
-            Some(Token::Keyword(Keyword::String)) => {
-                let state = self.parse_declare(Size::Byte);
-                state
-            }
-            Some(Token::Keyword(Keyword::Return)) => {
-                let state = Ok(Statement::Return(self.parse_expression()));
-                state
-            }
+            Some(Token::Keyword(Keyword::Int)) => self.parse_declare(Size::Int),
+            Some(Token::Keyword(Keyword::Let)) => self.parse_declare(Size::Byte),
+            Some(Token::Keyword(Keyword::Bool)) => self.parse_declare(Size::Byte),
+            Some(Token::Keyword(Keyword::Const)) => self.parse_declare(Size::Byte),
+            Some(Token::Keyword(Keyword::String)) => self.parse_declare(Size::Byte),
+            Some(Token::Keyword(Keyword::Return)) => Ok(Statement::Return(self.parse_expression())),
             Some(Token::Keyword(Keyword::If)) => self.parse_if_statement(),
             Some(Token::Keyword(Keyword::While)) => self.parse_while_statement(),
             Some(Token::OpenBrace) => self.parse_compond_statement(),
             other => {
                 self.push(other);
-                let state = Ok(Statement::Exp(self.parse_expression()));
-                state
+                Ok(Statement::Exp(self.parse_expression()))
             }
         };
         match i {
-            Ok(_) => return i.unwrap(),
+            Ok(_) => i.unwrap(),
             Err(error) => self.app.error(format!("{:#?}", error).as_str()),
         }
     }
     fn parse_compond_statement(&mut self) -> Result<Statement, String> {
         let mut statements = vec![];
-        while let Err(_) = self.peek_token(Token::CloseBrace) {
+        while self.peek_token(Token::CloseBrace).is_err() {
             statements.push(self.parse_statement());
         }
         self.drop(1);
@@ -295,7 +296,7 @@ impl Parser {
         match (self.next(), self.next()) {
             (Some(Token::Identifier(name)), Some(Token::Assign)) => {
                 let exp = self.parse_expression();
-                Expression::Assign(name.clone(), Box::new(exp))
+                Expression::Assign(name, Box::new(exp))
             }
             (Some(Token::Identifier(name)), Some(Token::AssignAdd)) => {
                 self.parse_assign_op(BinOp::Addition, &name)
@@ -337,18 +338,12 @@ impl Parser {
 
     fn parse_conditional_expression(&mut self) -> Expression {
         let mut term = self.parse_or_expression();
-
-        loop {
-            match self.peek() {
-                Some(Token::Question) => {
-                    self.next();
-                    let body = self.parse_expression();
-                    self.match_token(Token::Colon).expect("Expected a Colon");
-                    let else_body = self.parse_expression();
-                    term = Expression::Ternary(Box::new(term), Box::new(body), Box::new(else_body))
-                }
-                _ => break,
-            }
+        while let Some(Token::Question) = self.peek() {
+            self.next();
+            let body = self.parse_expression();
+            self.match_token(Token::Colon).expect("Expected a Colon");
+            let else_body = self.parse_expression();
+            term = Expression::Ternary(Box::new(term), Box::new(body), Box::new(else_body))
         }
 
         term
@@ -457,9 +452,8 @@ impl Parser {
                     .app
                     .error(format!("Only variables support &, found token: {:?}", other).as_str()),
             },
-            op => {
-                self.app
-                    .error(format!("Variables should be assigned").as_str());
+            _op => {
+                self.app.error(&"Variables should be assigned".to_string());
             }
         }
     }
@@ -467,7 +461,7 @@ impl Parser {
     fn parse_function_arguments(&mut self) -> Vec<Expression> {
         let mut arguments = vec![];
         self.next();
-        while let Err(_) = self.peek_token(Token::CloseParen) {
+        while self.peek_token(Token::CloseParen).is_err() {
             let exp = self.parse_assignment_expression();
             arguments.push(exp);
             if let Some(Token::Comma) = self.peek() {
@@ -480,7 +474,9 @@ impl Parser {
 
     fn parse_arguments(&mut self) -> Result<Vec<Variable>, String> {
         let mut arguments = Vec::new();
-        while let Err(_) = self.peek_token(Token::CloseParen) {
+        while self.peek_token(Token::CloseParen).is_err() {
+            let name = self.match_identifier()?;
+            self.match_token(Token::Colon)?;
             let size = match self.next() {
                 Some(Token::Keyword(Keyword::Int)) => Size::Int,
                 Some(Token::Keyword(Keyword::String)) => Size::Byte,
@@ -488,7 +484,6 @@ impl Parser {
                 Some(Token::Keyword(Keyword::Bool)) => Size::Byte,
                 other => panic!("Expected int,char found {:?}", other),
             };
-            let name = self.match_identifier()?;
             arguments.push(Variable { name, size });
             if let Some(Token::Comma) = self.peek() {
                 self.next();

@@ -8,7 +8,7 @@ use colored::Colorize;
 
 use crate::{
     lexer::{
-        parser::{self, Parser},
+        parser::{self},
         tokenizer::tokenizer,
     },
     utils::App,
