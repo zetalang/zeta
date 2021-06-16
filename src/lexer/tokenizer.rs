@@ -23,6 +23,7 @@ pub fn tokenizer(contents: &str) -> Vec<Token> {
                         "let" => tokens.push_back(Token::Keyword(Keyword::Let)),
                         "mlstr" => tokens.push_back(Token::Keyword(Keyword::MLstr)),
                         "return" => tokens.push_back(Token::Keyword(Keyword::Return)),
+                        "void" => tokens.push_back(Token::Keyword(Keyword::Void)),
                         "bool" => tokens.push_back(Token::Keyword(Keyword::Bool)),
                         "if" => tokens.push_back(Token::Keyword(Keyword::If)),
                         "else" => tokens.push_back(Token::Keyword(Keyword::Else)),

@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use std::vec::IntoIter;
-use std::{iter::Peekable, process::exit, sync::Arc};
+use std::{iter::Peekable, sync::Arc};
 
 use crate::{
     lexer::types::{Token, Value},
@@ -119,33 +119,13 @@ impl Parser {
             globals: globals.into_iter().collect(),
         }
     }
-
-    // fn parse_import_statement(&mut self) -> Result<Import, String> {
-    //     self.match_keyword(&Keyword::Use)?;
-    //     let mut li = Vec::new();
-    //     while let Token::Identifier(name) = self.next().unwrap() {
-    //         li.push(name.clone());
-    //         if let Some(Token::DoubleColon) = self.next() {
-    //             continue;
-    //         };
-    //         if let Some(Token::Keyword(Keyword::Func)) = self.peek() {
-    //             break;
-    //         } else {
-    //             continue;
-    //         }
-    //     }
-    //     panic!("{:#?}", self.peek());
-    //     // self.next();
-    //     Ok(Import { name: li })
-    // }
-
     fn parse_import_statement(&mut self) -> Import {
         if let Some(Token::Keyword(Keyword::Use)) = self.peek() {
             self.next();
         }
-        let mut li = Vec::new();
+        let mut imports = Vec::new();
         while let Token::Identifier(name) = self.next().unwrap() {
-            li.push(name);
+            imports.push(name);
             if let Some(Token::Keyword(Keyword::Func)) = self.peek() {
                 break;
             }
@@ -159,12 +139,7 @@ impl Parser {
                 self.next();
             }
         }
-        // match self.peek().unwrap() {
-        //     Token::DoubleColon => {}
-        //     other => {}
-        // }
-        // self.next_token();
-        Import { name: li }
+        Import { name: imports }
     }
     fn parse_global_vars(&mut self) -> Statement {
         match self.next() {
@@ -179,6 +154,15 @@ impl Parser {
 
     fn parse_function(&mut self) -> Result<Function, String> {
         self.match_keyword(&Keyword::Func)?;
+        let mut isasync = false;
+        let mut returnType: Types;
+        if let Some(Token::Keyword(Keyword::Async)) = self.peek() {
+            self.next();
+            isasync = true;
+        } else {
+            isasync = false
+        }
+        // panic!("{:#?}", self.peek());
         let name = self.match_identifier()?;
         self.match_token(Token::OpenParen)?;
         let arguments: Vec<Variable> = match self.peek() {
@@ -191,6 +175,9 @@ impl Parser {
         self.match_token(Token::CloseParen)?;
         if self.peek().unwrap() == Token::Colon {
             self.match_token(Token::Colon)?;
+            returnType = self.parse_return();
+        } else {
+            returnType = Types::Void;
         }
         self.match_token(Token::OpenBrace)?;
 
@@ -204,12 +191,33 @@ impl Parser {
         self.match_token(Token::CloseBrace)?;
 
         Ok(Function {
+            isasync,
             name,
             arguments,
+            returnType,
             statements,
         })
     }
+    fn parse_return(&mut self) -> Types {
+        if let Some(Token::Keyword(Keyword::Bool)) = self.peek() {
+            self.next();
+            return Types::Bool;
+        } else if let Some(Token::Keyword(Keyword::MLstr)) = self.peek() {
+            self.next();
 
+            return Types::Mlstr;
+        } else if let Some(Token::Keyword(Keyword::Int)) = self.peek() {
+            self.next();
+            return Types::Int;
+        } else if let Some(Token::Keyword(Keyword::String)) = self.peek() {
+            self.next();
+            return Types::Str;
+        } else if let Some(Token::Keyword(Keyword::Void)) = self.peek() {
+            self.next();
+            return Types::Void;
+        }
+        self.app.error(format!("Did not find return type").as_str());
+    }
     fn parse_statement(&mut self) -> Statement {
         let i = match self.next() {
             Some(Token::Keyword(Keyword::Int)) => self.parse_declare(Size::Int),

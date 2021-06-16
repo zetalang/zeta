@@ -141,6 +141,7 @@ pub enum Keyword {
     Int,
     Async,
     String,
+    Void,
     MLstr,
     Let,
     Func,

@@ -23,10 +23,19 @@ pub struct Program {
     pub func: Vec<Function>,
     pub globals: Vec<Statement>,
 }
-
+#[derive(Debug)]
+pub enum Types {
+    Bool,
+    Str,
+    Void,
+    Int,
+    Mlstr,
+}
 #[derive(Debug)]
 pub struct Function {
+    pub isasync: bool,
     pub name: String,
+    pub returnType: Types,
     pub arguments: Vec<Variable>,
     pub statements: Vec<Statement>,
 }
