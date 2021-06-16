@@ -1,5 +1,5 @@
-use std::getArgs
-
-fn main (arg: bool) {
-	let arg = getArgs()
+use std::io::Input
+use std::io::Print
+fn main (i: bool) {
+	let var = Input()
 }

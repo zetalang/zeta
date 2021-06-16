@@ -14,7 +14,7 @@ pub struct Variable {
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Import {
-    pub name: String,
+    pub name: Vec<String>,
 }
 
 #[derive(Debug)]

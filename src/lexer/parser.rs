@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use std::vec::IntoIter;
-use std::{iter::Peekable, sync::Arc};
+use std::{iter::Peekable, process::exit, sync::Arc};
 
 use crate::{
     lexer::types::{Token, Value},
@@ -104,12 +104,10 @@ impl Parser {
         let mut imports = Vec::new();
         let mut globals = Vec::new();
         while self.has_more() {
-            if self.peek().unwrap() == Token::Keyword(Keyword::Func) {
+            if self.peek().unwrap() == Token::Keyword(Keyword::Use) {
+                imports.push(self.parse_import_statement());
+            } else if self.peek().unwrap() == Token::Keyword(Keyword::Func) {
                 functions.push(self.parse_function().expect("Failed to parse function"));
-            } else if self.peek().unwrap() == Token::Keyword(Keyword::Use) {
-                while let Token::Keyword(Keyword::Use) = self.next().unwrap() {
-                    imports.push(self.parse_import_statement());
-                }
             } else {
                 globals.push(self.parse_global_vars());
             }
@@ -121,23 +119,52 @@ impl Parser {
             globals: globals.into_iter().collect(),
         }
     }
+
+    // fn parse_import_statement(&mut self) -> Result<Import, String> {
+    //     self.match_keyword(&Keyword::Use)?;
+    //     let mut li = Vec::new();
+    //     while let Token::Identifier(name) = self.next().unwrap() {
+    //         li.push(name.clone());
+    //         if let Some(Token::DoubleColon) = self.next() {
+    //             continue;
+    //         };
+    //         if let Some(Token::Keyword(Keyword::Func)) = self.peek() {
+    //             break;
+    //         } else {
+    //             continue;
+    //         }
+    //     }
+    //     panic!("{:#?}", self.peek());
+    //     // self.next();
+    //     Ok(Import { name: li })
+    // }
+
     fn parse_import_statement(&mut self) -> Import {
-        let n = match self.next() {
-            Some(Token::Identifier(name)) => match self.next() {
-                Some(Token::Colon) => {
-                    let n = self.next().unwrap();
-                    return Import {
-                        name: format!("{:#?}", n),
-                    };
-                }
-                _other => Import { name },
-            },
-            other => Import {
-                name: format!("none {:#?}", other),
-            },
-        };
+        if let Some(Token::Keyword(Keyword::Use)) = self.peek() {
+            self.next();
+        }
+        let mut li = Vec::new();
+        while let Token::Identifier(name) = self.next().unwrap() {
+            li.push(name);
+            if let Some(Token::Keyword(Keyword::Func)) = self.peek() {
+                break;
+            }
+            if let Some(Token::Keyword(Keyword::Const)) = self.peek() {
+                break;
+            }
+            if let Some(Token::Keyword(Keyword::Use)) = self.peek() {
+                break;
+            }
+            if let Some(Token::DoubleColon) = self.peek() {
+                self.next();
+            }
+        }
+        // match self.peek().unwrap() {
+        //     Token::DoubleColon => {}
+        //     other => {}
+        // }
         // self.next_token();
-        n
+        Import { name: li }
     }
     fn parse_global_vars(&mut self) -> Statement {
         match self.next() {
@@ -257,7 +284,7 @@ impl Parser {
                 let exp = self.parse_expression();
                 Ok(Statement::Declare(Variable { name, size }, Some(exp)))
             }
-            other => Err(format!("Variables should be assigned {:?}", other.0)),
+            other => Err("Variables should be assigned".to_string()),
         }
     }
 
