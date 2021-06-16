@@ -2,10 +2,6 @@
 use std::{io::Read, sync::Arc, vec};
 
 // Library Imports
-use anyhow::Result;
-use async_trait::async_trait;
-use colored::Colorize;
-
 use crate::{
     lexer::{
         parser::{self},
@@ -14,6 +10,10 @@ use crate::{
     utils::App,
     utils::VERSION,
 };
+use anyhow::Result;
+use async_trait::async_trait;
+use colored::Colorize;
+use no_comment::{languages, IntoWithoutComments as _};
 
 // Super Imports
 use super::Command;
@@ -66,9 +66,15 @@ Flags:
         let mut file =
             std::fs::File::open(filename).unwrap_or_else(|e| app.error(e.to_string().as_str()));
         let mut f_contents = String::new();
+
         file.read_to_string(&mut f_contents)
             .unwrap_or_else(|e| app.error(e.to_string().as_str()));
-        let tokenize = tokenizer(&f_contents);
+
+        let preprocessed = f_contents
+            .chars()
+            .without_comments(languages::rust())
+            .collect::<String>();
+        let tokenize = tokenizer(&preprocessed);
         let mut parse = parser::Parser::new(tokenize, app);
         println!("{:#?}", parse.parse());
         Ok(())

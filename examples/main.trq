@@ -1,6 +1,10 @@
+/* Imports */
 use std::io::Input
 use std::io::Print
 
+
+
+/* Global VARS */
 const main = "idk"	
 fn asd (i: bool): bool { // no async
 	let var = Input()
