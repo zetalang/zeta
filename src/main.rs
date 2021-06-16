@@ -24,7 +24,7 @@ async fn main() -> anyhow::Result<(), anyhow::Error> {
     }
     cmd.run(app).await?;
     println!(
-        "Completed in {}ms",
+        "Completed in {} seconds",
         time.elapsed().as_secs_f64().to_string().as_str().blue()
     );
     Ok(())
