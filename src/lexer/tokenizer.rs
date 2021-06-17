@@ -126,3 +126,49 @@ pub fn tokenizer(contents: &str) -> Vec<Token> {
     }
     tokens.tokens
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn single_char_ops() {
+        assert_eq!(
+            tokenizer("{}$"),
+            vec![Token::OpenBrace, Token::CloseBrace, Token::Dollar]
+        );
+    }
+
+    #[test]
+    fn multi_char_ops() {
+        assert_eq!(
+            tokenizer("&&||>>"),
+            vec![Token::And, Token::Or, Token::BitwiseRight]
+        );
+    }
+
+    #[test]
+    fn drop_whitespace() {
+        assert_eq!(
+            tokenizer("%=\r34\n   ~"),
+            vec![
+                Token::AssignMod,
+                Token::Literal(Value::Int(34)),
+                Token::BitComp
+            ]
+        );
+    }
+
+    #[test]
+    fn basic_identifiers() {
+        assert_eq!(
+            tokenizer("async fn pub else"),
+            vec![
+                Token::Keyword(Keyword::Async),
+                Token::Keyword(Keyword::Func),
+                Token::Keyword(Keyword::Pub),
+                Token::Keyword(Keyword::Else)
+            ]
+        );
+    }
+}
