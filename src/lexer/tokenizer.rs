@@ -36,7 +36,7 @@ pub fn tokenizer(contents: &str) -> Vec<Token> {
                     }
                 }
 
-                '`' => tokens.push(Token::Literal(Value::MLStr(c.into()))),
+                '`' => tokens.push(Token::Literal(Value::MLStr(c as u64))),
                 '"' => tokens.push(Token::Literal(Value::Char((c as u8).to_string()))),
                 '\'' => tokens.push(Token::Literal(Value::Char((c as u8).to_string()))),
                 '0'..='9' => {
