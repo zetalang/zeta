@@ -40,6 +40,6 @@
 
 ## Discord
 
-##### For any doubts or for contributing join our <a href="https://discord.com/invite/wY9NsfGFDP">discord server</a>
+##### Doubts? join our <a href="https://discord.com/invite/wY9NsfGFDP">discord server</a>
 
 <a href="https://discord.com/invite/wY9NsfGFDP"><img src="https://invidget.switchblade.xyz/wY9NsfGFDP"/></a>
