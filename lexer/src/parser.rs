@@ -175,9 +175,7 @@ impl Parser {
         self.match_token(Token::OpenParen)?;
         let arguments: Vec<Variable> = match self.peek() {
             Some(Token::CloseParen) => Vec::new(),
-            _ => self
-                .parse_arguments()
-                .expect("Failed to parse function arguments"),
+            _ => self.parse_arguments()?,
         };
 
         self.match_token(Token::CloseParen)?;
