@@ -33,9 +33,9 @@ pub enum Types {
 }
 #[derive(Debug)]
 pub struct Function {
-    pub isasync: bool,
+    pub is_async: bool,
     pub name: String,
-    pub returnType: Types,
+    pub return_type: Types,
     pub arguments: Vec<Variable>,
     pub statements: Vec<Statement>,
 }

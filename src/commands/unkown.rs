@@ -59,7 +59,7 @@ Flags:
             "--release",
             "-r",
         ];
-        let flags = app.filter_flag(&acceptedflags);
+        let _flags = app.filter_flag(&acceptedflags);
 
         let args = app.args.clone();
         let filename: &str = args[0].as_str();
