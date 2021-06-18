@@ -1,0 +1,9 @@
+[package]
+name = "lexer"
+version = "0.1.0"
+authors = ["Varun Potti <potti.varun07@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+itertools = "0.10.1"
+thiserror = "1.0"

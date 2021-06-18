@@ -1,24 +1,13 @@
-// Std Imports
-use std::{io::Read, sync::Arc, vec};
-
-// Library Imports
-use crate::{
-    lexer::{
-        parser::{self},
-        tokenizer::tokenizer,
-    },
-    utils::App,
-    utils::VERSION,
-};
-use anyhow::Result;
+use super::Command;
+use crate::{utils::App, utils::VERSION};
+use anyhow::{Context, Result};
 use async_trait::async_trait;
 use colored::Colorize;
+use lexer::{tokenize, Parser};
 use no_comment::{languages, IntoWithoutComments as _};
+use std::{io::Read, sync::Arc, vec};
 
-// Super Imports
-use super::Command;
-
-pub struct Compile {}
+pub struct Compile;
 
 #[async_trait]
 impl Command for Compile {
@@ -74,8 +63,8 @@ Flags:
             .chars()
             .without_comments(languages::rust())
             .collect::<String>();
-        let tokenize = tokenizer(&preprocessed);
-        let mut parse = parser::Parser::new(tokenize, app);
+        let tokenize = tokenize(&preprocessed).context("Failed to tokenize the contents.")?;
+        let mut parse = Parser::new(tokenize);
         println!("{:#?}", parse.parse());
         Ok(())
     }
