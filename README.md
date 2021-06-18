@@ -27,11 +27,26 @@
 - Rich standard library
 - Memory safety is guaranteed with no slow downs in your code
 
-## How can I run this
+## Installation
+
+Here are some guides on how to install `torqc` onto your local machine.
+
+### Install via Cargo
+
+1. Clone and navigate into the project in some way onto your local machine. Here is how you can do it via Git:
 
 ```sh
-> cargo run
+> git clone https://github.com/torq-lang/torqc
+> cd torqc
 ```
+
+2. Install and build the `torqc` binary via the following command.
+
+```sh
+> cargo install --path cli
+```
+
+After that, you should be able to run `torqc --version` to get the current version of `torqc` that you have installed. If that does not work, we advise joining our [Discord](#discord) and asking for help in there.
 
 ## Credits
 
