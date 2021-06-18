@@ -10,7 +10,7 @@ use crate::utils::App;
 
 // Modules
 pub mod help;
-pub mod unkown;
+pub mod unknown;
 #[derive(Debug)]
 pub enum AppCommand {
     Unknown,
@@ -42,7 +42,7 @@ impl AppCommand {
 
     pub fn help(&self) -> String {
         match self {
-            Self::Unknown => unkown::Compile::help(),
+            Self::Unknown => unknown::Compile::help(),
             Self::Help => help::Help::help(),
         }
     }
@@ -50,7 +50,7 @@ impl AppCommand {
     pub async fn run(&self, app: App) -> Result<()> {
         let app = Arc::new(app);
         match self {
-            Self::Unknown => unkown::Compile::exec(app).await,
+            Self::Unknown => unknown::Compile::exec(app).await,
             Self::Help => help::Help::exec(app).await,
         }
     }
