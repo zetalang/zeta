@@ -154,13 +154,11 @@ impl Parser {
 
     fn parse_function(&mut self) -> Result<Function, String> {
         self.match_keyword(&Keyword::Func)?;
-        let mut isasync = false;
-        let mut returnType: Types;
+        let mut is_async = false;
+        let return_type: Types;
         if let Some(Token::Keyword(Keyword::Async)) = self.peek() {
             self.next();
-            isasync = true;
-        } else {
-            isasync = false
+            is_async = true;
         }
         // panic!("{:#?}", self.peek());
         let name = self.match_identifier()?;
@@ -175,9 +173,9 @@ impl Parser {
         self.match_token(Token::CloseParen)?;
         if self.peek().unwrap() == Token::Colon {
             self.match_token(Token::Colon)?;
-            returnType = self.parse_return();
+            return_type = self.parse_return();
         } else {
-            returnType = Types::Void;
+            return_type = Types::Void;
         }
         self.match_token(Token::OpenBrace)?;
 
@@ -191,10 +189,10 @@ impl Parser {
         self.match_token(Token::CloseBrace)?;
 
         Ok(Function {
-            isasync,
+            is_async,
             name,
             arguments,
-            returnType,
+            return_type,
             statements,
         })
     }
@@ -292,7 +290,7 @@ impl Parser {
                 let exp = self.parse_expression();
                 Ok(Statement::Declare(Variable { name, size }, Some(exp)))
             }
-            other => Err("Variables should be assigned".to_string()),
+            _ => Err("Variables should be assigned".to_string()),
         }
     }
 
