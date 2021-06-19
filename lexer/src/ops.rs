@@ -9,6 +9,7 @@ pub enum Size {
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Variable {
     pub name: String,
+    pub t: String,
     pub size: Size,
 }
 

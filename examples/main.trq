@@ -1,11 +1,9 @@
-/* Imports */
-use std::io::Input
-use std::io::Print
-
-/* Global VARS */
-const main = "idk"	
+const ma = "idk"	
 const main2 = "idkjuskool"	
-fn async main (i: bool) { // async is there hence there will be a isasync = true
-	let var = Input()
-	let asd = asd()
+fn Input(i:str, b: bool){
+
+}
+fn main () { // async is there hence there will be a isasync = true
+	bool a = true
+	let i = Input(ma, true)
 }

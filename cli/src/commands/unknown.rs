@@ -71,7 +71,7 @@ Flags:
             println!("{:#?}", e);
             std::process::exit(1)
         });
-
+        println!("{:#?}", parsedval);
         if app.has_flag(&["--userust"]) {
             let mut rustcompiler = RustCompiler::new(parsedval);
             rustcompiler.compile();
