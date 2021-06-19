@@ -1,24 +1,13 @@
-// Std Imports
-use std::{io::Read, sync::Arc, vec};
-
-// Library Imports
-use crate::{
-    lexer::{
-        parser::{self},
-        tokenizer::tokenizer,
-    },
-    utils::App,
-    utils::VERSION,
-};
-use anyhow::Result;
+use super::Command;
+use crate::{utils::App, utils::VERSION};
+use anyhow::{Context, Result};
 use async_trait::async_trait;
 use colored::Colorize;
+use compiler::RustCompiler;
+use lexer::{tokenize, Parser};
 use no_comment::{languages, IntoWithoutComments as _};
-
-// Super Imports
-use super::Command;
-
-pub struct Compile {}
+use std::{io::Read, sync::Arc, vec};
+pub struct Compile;
 
 #[async_trait]
 impl Command for Compile {
@@ -34,6 +23,7 @@ Flags:
   {asterisk} {} - uses gcc
   {asterisk} {} - verbose output
   {asterisk} {} - Builds for deployement
+  {asterisk} {} - Compiles to rust code
   "#,
             VERSION.bright_green().bold(),
             "torqc".bright_green().bold(),
@@ -44,6 +34,7 @@ Flags:
             "--usegcc, -ugcc ".bright_blue(),
             "--verbose, -vb  ".bright_blue(),
             "--release, -r   ".bright_blue(),
+            "--userust       ".bright_blue(),
             asterisk = "*".bright_magenta().bold(),
         )
     }
@@ -58,9 +49,9 @@ Flags:
             "-vb",
             "--release",
             "-r",
+            "--userust",
         ];
-        let flags = app.filter_flag(&acceptedflags);
-
+        let _flags = app.filter_flag(&acceptedflags);
         let args = app.args.clone();
         let filename: &str = args[0].as_str();
         let mut file =
@@ -74,9 +65,19 @@ Flags:
             .chars()
             .without_comments(languages::rust())
             .collect::<String>();
-        let tokenize = tokenizer(&preprocessed);
-        let mut parse = parser::Parser::new(tokenize, app);
-        println!("{:#?}", parse.parse());
+        let tokenize = tokenize(&preprocessed).context("Failed to tokenize the contents.")?;
+        let mut parse = Parser::new(tokenize);
+        let mut parsedval = parse.parse().unwrap_or_else(|e| {
+            println!("{:#?}", e);
+            std::process::exit(1)
+        });
+
+        if app.has_flag(&["--userust"]) {
+            let mut rustcompiler = RustCompiler::new(parsedval);
+            rustcompiler.compile();
+        }
+        // compile(parsedval);
+        // println!("{:#?}", parse.parse());
         Ok(())
     }
 }

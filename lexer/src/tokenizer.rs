@@ -1,6 +1,6 @@
-use super::types::*;
+use crate::{errors::TokenizeError, *};
 
-pub fn tokenizer(contents: &str) -> Vec<Token> {
+pub fn tokenize(contents: &str) -> Result<Vec<Token>, TokenizeError> {
     let mut tokens = TokenParser::new(contents);
     let mut is_close_single_line = true;
     while let Some(&c) = tokens.peek() {
@@ -35,16 +35,21 @@ pub fn tokenizer(contents: &str) -> Vec<Token> {
                         _ => tokens.push_back(Token::Identifier(word.to_string())),
                     }
                 }
-
-                '`' => tokens.push(Token::Literal(Value::MLStr(c as u64))),
-                '"' => tokens.push(Token::Literal(Value::Char((c as u8).to_string()))),
-                '\'' => tokens.push(Token::Literal(Value::Char((c as u8).to_string()))),
+                '`' => {
+                    tokens.next();
+                }
+                '"' => {
+                    tokens.next();
+                }
+                '\'' => {
+                    tokens.next();
+                }
                 '0'..='9' => {
                     let word = tokens.get_string(|x| x.is_ascii() && (x.is_digit(16) || x == &'x'));
                     let int: u32 = if word.starts_with("0x") {
-                        u32::from_str_radix(&word[2..], 16).expect("Not a number")
+                        u32::from_str_radix(&word[2..], 16)?
                     } else {
-                        word.parse().expect("Not a number")
+                        word.parse()?
                     };
                     tokens.push_back(Token::Literal(Value::Int(int)))
                 }
@@ -115,7 +120,7 @@ pub fn tokenizer(contents: &str) -> Vec<Token> {
                     ('^', _) => tokens.push_back(Token::BitwiseXor),
                     (':', _) => tokens.push_back(Token::Colon),
                     ('?', _) => tokens.push_back(Token::Question),
-                    _ => panic!("Unknown token {:?}", multi),
+                    _ => return Err(TokenizeError::UnknownToken(multi)),
                 },
             };
         } else if c == '\n' {
@@ -124,7 +129,7 @@ pub fn tokenizer(contents: &str) -> Vec<Token> {
             tokens.drop();
         }
     }
-    tokens.tokens
+    Ok(tokens.tokens)
 }
 
 #[cfg(test)]
@@ -134,7 +139,7 @@ mod test {
     #[test]
     fn single_char_ops() {
         assert_eq!(
-            tokenizer("{}$"),
+            tokenize("{}$").unwrap(),
             vec![Token::OpenBrace, Token::CloseBrace, Token::Dollar]
         );
     }
@@ -142,7 +147,7 @@ mod test {
     #[test]
     fn multi_char_ops() {
         assert_eq!(
-            tokenizer("&&||>>"),
+            tokenize("&&||>>").unwrap(),
             vec![Token::And, Token::Or, Token::BitwiseRight]
         );
     }
@@ -150,7 +155,7 @@ mod test {
     #[test]
     fn drop_whitespace() {
         assert_eq!(
-            tokenizer("%=\r34\n   ~"),
+            tokenize("%=\r34\n   ~").unwrap(),
             vec![
                 Token::AssignMod,
                 Token::Literal(Value::Int(34)),
@@ -162,7 +167,7 @@ mod test {
     #[test]
     fn basic_identifiers() {
         assert_eq!(
-            tokenizer("async fn pub else"),
+            tokenize("async fn pub else").unwrap(),
             vec![
                 Token::Keyword(Keyword::Async),
                 Token::Keyword(Keyword::Func),
@@ -170,5 +175,13 @@ mod test {
                 Token::Keyword(Keyword::Else)
             ]
         );
+    }
+
+    #[test]
+    fn false_positive_tokens() {
+        match tokenize("👫 🔫") {
+            Err(TokenizeError::UnknownToken(_)) => {}
+            _ => panic!(),
+        }
     }
 }

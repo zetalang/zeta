@@ -1,18 +1,18 @@
-use crate::lexer::types::Token;
+use crate::Token;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Size {
     Int,
     Byte,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Variable {
     pub name: String,
     pub size: Size,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Import {
     pub name: Vec<String>,
 }
@@ -23,24 +23,27 @@ pub struct Program {
     pub func: Vec<Function>,
     pub globals: Vec<Statement>,
 }
-#[derive(Debug)]
-pub enum Types {
+
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum Type {
     Bool,
     Str,
     Void,
     Int,
     Mlstr,
+    Char,
 }
+
 #[derive(Debug)]
 pub struct Function {
-    pub isasync: bool,
+    pub is_async: bool,
     pub name: String,
-    pub returnType: Types,
+    pub return_type: Type,
     pub arguments: Vec<Variable>,
     pub statements: Vec<Statement>,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Expression {
     BinOp(BinOp, Box<Expression>, Box<Expression>),
     UnOp(UnOp, Box<Expression>),
@@ -55,7 +58,7 @@ pub enum Expression {
     Ternary(Box<Expression>, Box<Expression>, Box<Expression>),
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Statement {
     Declare(Variable, Option<Expression>),
     Return(Expression),
@@ -65,14 +68,14 @@ pub enum Statement {
     Compound(Vec<Statement>),
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum UnOp {
     Negation,
     BitComp,
     LogicalNeg,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum BinOp {
     Addition,
     Subtraction,
