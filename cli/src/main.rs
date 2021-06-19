@@ -1,11 +1,8 @@
 mod commands;
-mod lexer;
 mod utils;
-// mod errors;
-use std::process::exit;
-// use errors::Error;
 use colored::Colorize;
 use commands::AppCommand;
+use std::process::exit;
 use utils::App;
 
 #[tokio::main]

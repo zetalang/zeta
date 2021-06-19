@@ -7,6 +7,7 @@ lazy_static! {
 }
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[derive(Debug)]
 pub struct App {
     pub current_dir: PathBuf,
@@ -37,6 +38,7 @@ impl App {
             flags,
         }
     }
+
     pub fn error(&self, error: &str) -> ! {
         eprintln!(
             "{}: {}\n  {}",
@@ -46,6 +48,7 @@ impl App {
         );
         exit(0)
     }
+
     pub fn has_flag(&self, flags: &[&str]) -> bool {
         self.flags
             .iter()

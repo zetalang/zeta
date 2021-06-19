@@ -32,9 +32,11 @@ impl<'a> TokenParser<'a> {
     pub fn drop(&mut self) {
         self.iter.next();
     }
+
     pub fn peek(&mut self) -> Option<&char> {
         self.iter.peek()
     }
+
     pub fn get_string<F>(&mut self, func: F) -> String
     where
         F: Fn(&char) -> bool,
@@ -42,6 +44,7 @@ impl<'a> TokenParser<'a> {
         self.iter.peeking_take_while(|c| func(c)).collect()
     }
 }
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct TokenType {
     token: Token,
@@ -127,4 +130,13 @@ pub enum Token {
     DoubleColon,
     Dollar,
     Question,
+}
+
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum ParserDescriptor {
+    AnyIdentifier,
+    AnyVariable,
+    Token(Token),
+    Newline,
+    NoToken,
 }
