@@ -1,39 +1,5 @@
 use codegen::{Block, Function, Scope};
 
-use codegen::{Field, Function, Scope};
-use lexer::{Expression, Program, Statement, Variable};
-
-pub struct RustCompiler {
-    program: Program,
-}
-
-impl RustCompiler {
-    pub fn new(program: Program) -> Self {
-        Self { program }
-    }
-
-    pub fn compile(&self) {
-        let Program {
-            globals,
-            imports,
-            func,
-        } = &self.program;
-
-        let mut scope = Scope::new();
-
-        for statement in globals.iter() {
-            match statement {
-                Statement::Declare(Variable { name, .. }, Some(expr)) => {
-                    scope.raw(format!("const {} = {:#?};", name, expr).as_ref());
-                    // won't workles try with normal one first I mean rust does not check code /shrug
-                }
-                _ => {}
-            }
-        }
-        println!("{}", scope.to_string())
-    }
-}
-
 fn main() {
     let mut scope = Scope::new();
     scope

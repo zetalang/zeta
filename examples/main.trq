@@ -2,12 +2,16 @@
 use std::io::Input
 use std::io::Print
 
+<<<<<<< HEAD
 /* Global VARS */
 const main = "idk"	
 const main2 = "idkjuskool"	
 fn asd (i: bool): bool { // no async
 	let var = Input()
 }
+=======
+const main = "idk"
+>>>>>>> 4391137f802d2605e2f52a91309b08079ac8170e
 fn async main (i: bool) { // async is there hence there will be a isasync = true
 	let var = Input()
 	let asd = asd()
