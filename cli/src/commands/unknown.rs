@@ -3,7 +3,7 @@ use crate::{utils::App, utils::VERSION};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use colored::Colorize;
-use compiler::RustCompiler;
+use compiler::{Compiler, RustCompiler};
 use lexer::{tokenize, Parser};
 use no_comment::{languages, IntoWithoutComments as _};
 use std::{io::Read, sync::Arc, vec};
@@ -74,7 +74,7 @@ Flags:
         println!("{:#?}", parsedval);
         if app.has_flag(&["--userust"]) {
             let mut rustcompiler = RustCompiler::new(parsedval);
-            rustcompiler.compile();
+            println!("{}", rustcompiler.compile());
         }
         // compile(parsedval);
         // println!("{:#?}", parse.parse());
