@@ -154,7 +154,7 @@ impl Parser {
 
     fn parse_global_vars(&mut self) -> Result<Statement, ParseError> {
         match self.next() {
-            Some(Token::Keyword(Keyword::Const)) => self.parse_declare(Size::Byte),
+            Some(Token::Keyword(Keyword::Const)) => self.parse_declare(Size::Byte, "&str"),
             other => {
                 self.push(other);
                 Ok(Statement::Exp(self.parse_expression()?))
@@ -227,11 +227,11 @@ impl Parser {
 
     fn parse_statement(&mut self) -> Result<Statement, ParseError> {
         match self.next() {
-            Some(Token::Keyword(Keyword::Int)) => self.parse_declare(Size::Int),
-            Some(Token::Keyword(Keyword::Let)) => self.parse_declare(Size::Byte),
-            Some(Token::Keyword(Keyword::Bool)) => self.parse_declare(Size::Byte),
-            Some(Token::Keyword(Keyword::Const)) => self.parse_declare(Size::Byte),
-            Some(Token::Keyword(Keyword::String)) => self.parse_declare(Size::Byte),
+            Some(Token::Keyword(Keyword::Int)) => self.parse_declare(Size::Int, "int"),
+            Some(Token::Keyword(Keyword::Let)) => self.parse_declare(Size::Byte, ""),
+            Some(Token::Keyword(Keyword::Bool)) => self.parse_declare(Size::Byte, "bool"),
+            Some(Token::Keyword(Keyword::Const)) => self.parse_declare(Size::Byte, ""),
+            Some(Token::Keyword(Keyword::String)) => self.parse_declare(Size::Byte, "str"),
             Some(Token::Keyword(Keyword::Return)) => {
                 Ok(Statement::Return(self.parse_expression()?))
             }
@@ -297,12 +297,12 @@ impl Parser {
         }
     }
 
-    fn parse_declare(&mut self, size: Size) -> Result<Statement, ParseError> {
+    fn parse_declare(&mut self, size: Size, t: &str) -> Result<Statement, ParseError> {
         match (self.next_token(), self.peek()) {
             (Token::Identifier(name), Some(Token::Assign)) => {
                 self.drop(1);
                 let exp = self.parse_expression()?;
-                Ok(Statement::Declare(Variable { name, size }, Some(exp)))
+                Ok(Statement::Declare(Variable { name, size, t: t.to_string()}, Some(exp)))
             }
             _ => Err(ParseError::UnassignedVariable),
         }
@@ -528,6 +528,15 @@ impl Parser {
         while self.peek_token(Token::CloseParen).is_err() {
             let name = self.match_identifier()?;
             self.match_token(Token::Colon)?;
+            let t = match self.peek() {
+                Some(Token::Keyword(Keyword::Int)) => "int",
+                Some(Token::Keyword(Keyword::String)) => "str",
+                Some(Token::Keyword(Keyword::MLstr)) => "mlstr",
+                Some(Token::Keyword(Keyword::Bool)) => "bool",
+                _ => {
+                    panic!("Error")
+                }
+            };
             let size = match self.next() {
                 Some(Token::Keyword(Keyword::Int)) => Ok(Size::Int),
                 Some(Token::Keyword(Keyword::String)) => Ok(Size::Byte),
@@ -538,7 +547,7 @@ impl Parser {
                     received: Type::Char,
                 }),
             }?;
-            arguments.push(Variable { name, size });
+            arguments.push(Variable { name, size, t: t.to_string() });
             if let Some(Token::Comma) = self.peek() {
                 self.next();
             }
