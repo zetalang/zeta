@@ -3,10 +3,10 @@ use crate::{utils::App, utils::VERSION};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use colored::Colorize;
+use compiler::RustCompiler;
 use lexer::{tokenize, Parser};
 use no_comment::{languages, IntoWithoutComments as _};
 use std::{io::Read, sync::Arc, vec};
-
 pub struct Compile;
 
 #[async_trait]
@@ -23,6 +23,7 @@ Flags:
   {asterisk} {} - uses gcc
   {asterisk} {} - verbose output
   {asterisk} {} - Builds for deployement
+  {asterisk} {} - Compiles to rust code
   "#,
             VERSION.bright_green().bold(),
             "torqc".bright_green().bold(),
@@ -33,6 +34,7 @@ Flags:
             "--usegcc, -ugcc ".bright_blue(),
             "--verbose, -vb  ".bright_blue(),
             "--release, -r   ".bright_blue(),
+            "--userust       ".bright_blue(),
             asterisk = "*".bright_magenta().bold(),
         )
     }
@@ -47,9 +49,9 @@ Flags:
             "-vb",
             "--release",
             "-r",
+            "--userust",
         ];
         let _flags = app.filter_flag(&acceptedflags);
-
         let args = app.args.clone();
         let filename: &str = args[0].as_str();
         let mut file =
@@ -65,7 +67,17 @@ Flags:
             .collect::<String>();
         let tokenize = tokenize(&preprocessed).context("Failed to tokenize the contents.")?;
         let mut parse = Parser::new(tokenize);
-        println!("{:#?}", parse.parse());
+        let mut parsedval = parse.parse().unwrap_or_else(|e| {
+            println!("{:#?}", e);
+            std::process::exit(1)
+        });
+
+        if app.has_flag(&["--userust"]) {
+            let mut rustcompiler = RustCompiler::new(parsedval);
+            rustcompiler.compile();
+        }
+        // compile(parsedval);
+        // println!("{:#?}", parse.parse());
         Ok(())
     }
 }

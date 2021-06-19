@@ -35,10 +35,15 @@ pub fn tokenize(contents: &str) -> Result<Vec<Token>, TokenizeError> {
                         _ => tokens.push_back(Token::Identifier(word.to_string())),
                     }
                 }
-
-                '`' => tokens.push(Token::Literal(Value::MLStr(c as u64))),
-                '"' => tokens.push(Token::Literal(Value::Char((c as u8).to_string()))),
-                '\'' => tokens.push(Token::Literal(Value::Char((c as u8).to_string()))),
+                '`' => {
+                    tokens.next();
+                }
+                '"' => {
+                    tokens.next();
+                }
+                '\'' => {
+                    tokens.next();
+                }
                 '0'..='9' => {
                     let word = tokens.get_string(|x| x.is_ascii() && (x.is_digit(16) || x == &'x'));
                     let int: u32 = if word.starts_with("0x") {
