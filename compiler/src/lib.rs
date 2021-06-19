@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let tokens = tokenize("let x = 23").unwrap();
+        let tokens = tokenize("const x = 23").unwrap();
         let mut parser = Parser::new(tokens);
         let compiler = RustCompiler::new(parser.parse().unwrap());
     }
