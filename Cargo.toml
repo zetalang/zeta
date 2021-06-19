@@ -1,5 +1,7 @@
 [workspace]
 members = [
 	"lexer",
-	"cli"
+	"cli",
+	"torq-llvm",
+	"compiler"
 ]
