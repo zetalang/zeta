@@ -108,7 +108,10 @@ impl RustCompiler {
                     format!("{}", n)
                 }
             },
-            _ => unimplemented!(),
+            Expression::Int(num) => {
+                format!("{}", num)
+            },
+            _ => unimplemented!()
         }
     }
 }
