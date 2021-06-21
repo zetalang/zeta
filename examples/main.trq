@@ -4,7 +4,7 @@ const m2 = "asdasd-asds ${asdsad}"
 fn Input(i:str, b: bool){
 
 }
-fn main () { // async is there hence there will be a isasync = true
+fn main () { 
 	bool a = true
 	int a = 1
 	str i = "asda"
