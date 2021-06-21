@@ -37,12 +37,18 @@ pub fn tokenize(contents: &str) -> Result<Vec<Token>, TokenizeError> {
                 }
                 '`' => {
                     tokens.next();
+                    let t = tokens.get_string(|s| (s != &'`'));
+                    tokens.push(Token::Identifier(t))
                 }
                 '"' => {
                     tokens.next();
+                    let t = tokens.get_string(|s| (s != &'"'));
+                    tokens.push(Token::Identifier(t))
                 }
                 '\'' => {
                     tokens.next();
+                    let t = tokens.get_string(|s| (s != &'\''));
+                    tokens.push(Token::Identifier(t))
                 }
                 '0'..='9' => {
                     let word = tokens.get_string(|x| x.is_ascii() && (x.is_digit(16) || x == &'x'));

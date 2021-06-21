@@ -1,5 +1,6 @@
-const ma = "idk"	
-const main2 = "idkjuskool"	
+const m = `asdasd-asds ${asdsad}`
+const m1 = 'asdasd-asds ${asdsad}'
+const m2 = "asdasd-asds ${asdsad}"
 fn Input(i:str, b: bool){
 
 }
