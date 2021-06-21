@@ -25,7 +25,7 @@ impl<'a> TokenParser<'a> {
         self.tokens.push(token);
     }
 
-    pub fn next(&mut self) -> Option<char> {
+    pub fn p_next(&mut self) -> Option<char> {
         self.iter.next()
     }
 

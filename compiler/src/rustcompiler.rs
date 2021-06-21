@@ -15,7 +15,7 @@ impl RustCompiler {
         match exp {
             Expression::FunctionCall(varname, fnargs) => {
                 let mut s = String::new();
-                for (i, _exp) in fnargs.iter().enumerate() {
+                for i in 0..fnargs.len() {
                     match &fnargs[i] {
                         Expression::Variable(name) => {
                             if i == 0 {
@@ -33,7 +33,7 @@ impl RustCompiler {
                 if var_type == "str" {
                     format!("\"{}\"", n)
                 } else {
-                    n.to_string()
+                    format!("{}", n)
                 }
             }
             Expression::Int(num) => {
@@ -68,20 +68,23 @@ impl Compiler for RustCompiler {
         let mut scope = Scope::new();
 
         for statement in globals.iter() {
-            if let Statement::Declare(Variable { name, .. }, Some(expr)) = statement {
-                scope.raw(
-                    format!(
-                        "const {}: &str = {:#?};", /* TODO don't hardcode &str */
-                        name,
-                        match expr {
-                            Expression::Variable(value) => {
-                                value
+            match statement {
+                Statement::Declare(Variable { name, .. }, Some(expr)) => {
+                    scope.raw(
+                        format!(
+                            "const {}: &str = {:#?};", /* TODO don't hardcode &str */
+                            name,
+                            match expr {
+                                Expression::Variable(value) => {
+                                    value
+                                }
+                                _ => unimplemented!(),
                             }
-                            _ => unimplemented!(),
-                        }
-                    )
-                    .as_ref(),
-                );
+                        )
+                        .as_ref(),
+                    );
+                }
+                _ => {}
             }
         }
         for function in func.iter() {
@@ -93,10 +96,12 @@ impl Compiler for RustCompiler {
                 t = "str";
             } else if function.return_type == Type::Int {
                 t = "int";
-            } else if function.return_type == Type::Mlstr || function.return_type == Type::Str {
+            } else if function.return_type == Type::Mlstr {
+                t = "str";
+            } else if function.return_type == Type::Str {
                 t = "str";
             }
-            if t.is_empty() {
+            if t != "" {
                 f.ret(t);
             }
             for arg in 0..function.arguments.len() {
@@ -113,7 +118,7 @@ impl Compiler for RustCompiler {
             f.set_async(function.is_async);
             scope.push_fn(f);
         }
-        scope.to_string()
+        return scope.to_string();
     }
 }
 

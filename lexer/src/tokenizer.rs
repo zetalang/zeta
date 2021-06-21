@@ -36,17 +36,17 @@ pub fn tokenize(contents: &str) -> Result<Vec<Token>, TokenizeError> {
                     }
                 }
                 '`' => {
-                    tokens.next();
+                    tokens.p_next();
                     let t = tokens.get_string(|s| (s != &'`'));
                     tokens.push(Token::Identifier(t))
                 }
                 '"' => {
-                    tokens.next();
+                    tokens.p_next();
                     let t = tokens.get_string(|s| (s != &'"'));
                     tokens.push(Token::Identifier(t))
                 }
                 '\'' => {
-                    tokens.next();
+                    tokens.p_next();
                     let t = tokens.get_string(|s| (s != &'\''));
                     tokens.push(Token::Identifier(t))
                 }
@@ -61,12 +61,12 @@ pub fn tokenize(contents: &str) -> Result<Vec<Token>, TokenizeError> {
                 }
                 '~' => tokens.push(Token::BitComp),
                 ',' => tokens.push(Token::Comma),
-                multi => match (tokens.next().unwrap(), tokens.peek()) {
+                multi => match (tokens.p_next().unwrap(), tokens.peek()) {
                     ('&', Some(&'&')) => tokens.push(Token::And),
                     ('|', Some(&'|')) => tokens.push(Token::Or),
 
                     ('=', Some(&'>')) => {
-                        tokens.next();
+                        tokens.p_next();
                         tokens.push(Token::AsignFunc)
                     }
                     ('=', Some(&'=')) => tokens.push(Token::Equal),
@@ -74,7 +74,7 @@ pub fn tokenize(contents: &str) -> Result<Vec<Token>, TokenizeError> {
                     ('>', Some(&'=')) => tokens.push(Token::GreaterThanOrEqual),
                     ('!', Some(&'=')) => tokens.push(Token::NotEqual),
                     ('<', Some(&'<')) => {
-                        tokens.next();
+                        tokens.p_next();
                         if let Some(&'=') = tokens.peek() {
                             tokens.push(Token::AssignBitLeft)
                         } else {
@@ -82,7 +82,7 @@ pub fn tokenize(contents: &str) -> Result<Vec<Token>, TokenizeError> {
                         }
                     }
                     ('>', Some(&'>')) => {
-                        tokens.next();
+                        tokens.p_next();
                         if let Some(&'=') = tokens.peek() {
                             tokens.push(Token::AssignBitRight)
                         } else {
@@ -96,7 +96,7 @@ pub fn tokenize(contents: &str) -> Result<Vec<Token>, TokenizeError> {
                     ('/', _) => {
                         let next = tokens.peek().unwrap();
                         if next == &'/' {
-                            tokens.next();
+                            tokens.p_next();
                             is_close_single_line = false;
                         } else {
                             tokens.push_back(Token::Division)

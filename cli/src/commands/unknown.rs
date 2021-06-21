@@ -67,7 +67,7 @@ Flags:
             .collect::<String>();
         let tokenize = tokenize(&preprocessed).context("Failed to tokenize the contents.")?;
         let mut parse = Parser::new(tokenize);
-        let mut parsedval = parse.parse().unwrap_or_else(|e| {
+        let parsedval = parse.parse().unwrap_or_else(|e| {
             println!("{:#?}", e);
             std::process::exit(1)
         });

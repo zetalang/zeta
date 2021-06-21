@@ -196,13 +196,7 @@ impl Parser {
 
         self.match_token(Token::CloseBrace)?;
 
-        Ok(Function {
-            is_async,
-            name,
-            arguments,
-            return_type,
-            statements,
-        })
+        Ok(Function { is_async, name, return_type, arguments, statements })
     }
 
     fn parse_return(&mut self) -> Result<Type, ParseError> {
