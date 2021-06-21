@@ -196,6 +196,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "iron_llvm"
+version = "0.0.1"
+dependencies = [
+ "cmake",
+ "libc 0.1.12",
+ "llvm-sys",
+]
+
+[[package]]
 name = "itertools"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -492,15 +501,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "torq-llvm"
-version = "0.0.1"
-dependencies = [
- "cmake",
- "libc 0.1.12",
- "llvm-sys",
 ]
 
 [[package]]
