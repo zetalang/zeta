@@ -10,6 +10,9 @@ jobs:
           - stable
           - nightly
     steps:
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1.4.0
+
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
@@ -22,5 +25,3 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-      - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v1.4.0
