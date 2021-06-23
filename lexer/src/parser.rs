@@ -169,7 +169,6 @@ impl Parser {
     fn parse_function(&mut self) -> Result<Function, ParseError> {
         self.match_keyword(&Keyword::Func)?;
         let mut is_async = false;
-        let return_type: Type;
         if let Some(Token::Keyword(Keyword::Async)) = self.peek() {
             self.next();
             is_async = true;
@@ -183,12 +182,13 @@ impl Parser {
         };
 
         self.match_token(Token::CloseParen)?;
-        if self.peek().unwrap() == Token::Colon {
-            self.match_token(Token::Colon)?;
-            return_type = self.parse_return()?;
-        } else {
-            return_type = Type::Void;
-        }
+        let return_type = match self.peek().unwrap() {
+            Token::Colon => {
+                self.match_token(Token::Colon)?;
+                self.parse_return()?
+            }
+            _ => Type::Void,
+        };
         self.match_token(Token::OpenBrace)?;
 
         let mut statements = vec![];
@@ -210,23 +210,21 @@ impl Parser {
     }
 
     fn parse_return(&mut self) -> Result<Type, ParseError> {
-        if let Some(Token::Keyword(Keyword::Bool)) = self.peek() {
+        let typ = match self.peek() {
+            Some(Token::Keyword(Keyword::Bool)) => Ok(Type::Bool),
+            Some(Token::Keyword(Keyword::MLstr)) => Ok(Type::Mlstr),
+            Some(Token::Keyword(Keyword::Int)) => Ok(Type::Int),
+            Some(Token::Keyword(Keyword::String)) => Ok(Type::Str),
+            Some(Token::Keyword(Keyword::Void)) => Ok(Type::Void),
+            _ => Err(ParseError::AbsentReturnType),
+        };
+
+        if typ.is_ok() {
             self.next();
-            return Ok(Type::Bool);
-        } else if let Some(Token::Keyword(Keyword::MLstr)) = self.peek() {
-            self.next();
-            return Ok(Type::Mlstr);
-        } else if let Some(Token::Keyword(Keyword::Int)) = self.peek() {
-            self.next();
-            return Ok(Type::Int);
-        } else if let Some(Token::Keyword(Keyword::String)) = self.peek() {
-            self.next();
-            return Ok(Type::Str);
-        } else if let Some(Token::Keyword(Keyword::Void)) = self.peek() {
-            self.next();
-            return Ok(Type::Void);
+            typ
+        } else {
+            typ
         }
-        Err(ParseError::AbsentReturnType)
     }
 
     fn parse_statement(&mut self) -> Result<Statement, ParseError> {
@@ -732,9 +730,7 @@ impl Parser {
                 Some(Token::Keyword(Keyword::String)) => "str",
                 Some(Token::Keyword(Keyword::MLstr)) => "mlstr",
                 Some(Token::Keyword(Keyword::Bool)) => "bool",
-                _ => {
-                    panic!("Error")
-                }
+                _ => panic!("Error"),
             };
             let size = match self.next() {
                 Some(TokenType {
