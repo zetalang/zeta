@@ -168,12 +168,14 @@ impl Parser {
 
     fn parse_function(&mut self) -> Result<Function, ParseError> {
         self.match_keyword(&Keyword::Func)?;
-        let mut is_async = false;
-        if let Some(Token::Keyword(Keyword::Async)) = self.peek() {
-            self.next();
-            is_async = true;
-        }
-        // panic!("{:#?}", self.peek());
+
+        let is_async = match self.peek() {
+            Some(Token::Keyword(Keyword::Async)) => {
+                self.next();
+                true
+            }
+            _ => false,
+        };
         let name = self.match_identifier()?;
         self.match_token(Token::OpenParen)?;
         let arguments: Vec<Variable> = match self.peek() {
