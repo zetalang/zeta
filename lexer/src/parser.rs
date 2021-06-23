@@ -221,10 +221,8 @@ impl Parser {
 
         if typ.is_ok() {
             self.next();
-            typ
-        } else {
-            typ
         }
+        typ
     }
 
     fn parse_statement(&mut self) -> Result<Statement, ParseError> {
