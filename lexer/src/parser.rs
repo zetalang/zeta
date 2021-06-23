@@ -193,7 +193,7 @@ impl Parser {
         };
         self.match_token(Token::OpenBrace)?;
 
-        let mut statements = vec![];
+        let mut statements = Vec::new();
 
         while self.peek_token(Token::CloseBrace).is_err() {
             let statement = self.parse_statement()?;
