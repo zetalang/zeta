@@ -1,19 +1,19 @@
 use crate::errors::ParseError;
 use crate::{
     BinOp, Expression, Function, Import, Keyword, ParserDescriptor, Program, Size, Statement,
-    Token, Type, Value, Variable,
+    Token, TokenType, Type, Value, Variable,
 };
 use std::iter::Peekable;
 use std::vec::IntoIter;
 
 #[derive(Debug)]
 pub struct Parser {
-    tokens: Peekable<IntoIter<Token>>,
-    peeked: Vec<Token>,
+    tokens: Peekable<IntoIter<TokenType>>,
+    peeked: Vec<TokenType>,
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Parser {
+    pub fn new(tokens: Vec<TokenType>) -> Parser {
         Parser {
             tokens: tokens.into_iter().peekable(),
             peeked: Vec::new(),
@@ -24,7 +24,7 @@ impl Parser {
         self.parse_program()
     }
 
-    fn next(&mut self) -> Option<Token> {
+    fn next(&mut self) -> Option<TokenType> {
         if self.peeked.is_empty() {
             self.tokens.next()
         } else {
@@ -35,7 +35,7 @@ impl Parser {
     fn peek(&mut self) -> Option<Token> {
         if let Some(token) = self.next() {
             self.push(Some(token.clone()));
-            Some(token)
+            Some(token.token)
         } else {
             None
         }
@@ -47,9 +47,9 @@ impl Parser {
         }
     }
 
-    fn push(&mut self, token: Option<Token>) {
-        if let Some(t) = token {
-            self.peeked.push(t);
+    fn push(&mut self, token: Option<TokenType>) {
+        if let Some(s) = token {
+            self.peeked.push(s);
         }
     }
 
@@ -57,12 +57,12 @@ impl Parser {
         !self.peeked.is_empty() || self.tokens.peek().is_some()
     }
 
-    fn next_token(&mut self) -> Token {
+    fn next_token(&mut self) -> TokenType {
         self.next().expect("failed to parse")
     }
 
     fn match_token(&mut self, token: Token) -> Result<Token, ParseError> {
-        match self.next_token() {
+        match self.next_token().token {
             ref t if t == &token => Ok(token),
             other => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::AnyIdentifier,
@@ -81,7 +81,7 @@ impl Parser {
     }
 
     fn match_keyword(&mut self, keyword: &Keyword) -> Result<(), ParseError> {
-        let token = self.next_token();
+        let token = self.next_token().token;
         match token {
             Token::Keyword(ref k) if k == keyword => Ok(()),
             other => Err(ParseError::UnexpectedToken {
@@ -92,7 +92,7 @@ impl Parser {
     }
 
     fn match_identifier(&mut self) -> Result<String, ParseError> {
-        match self.next_token() {
+        match self.next_token().token {
             Token::Identifier(n) => Ok(n),
             other => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::AnyIdentifier,
@@ -134,7 +134,7 @@ impl Parser {
             self.next();
         }
         let mut imports = Vec::new();
-        while let Token::Identifier(name) = self.next().unwrap() {
+        while let Token::Identifier(name) = self.next().unwrap().token {
             imports.push(name);
             if let Some(Token::Keyword(Keyword::Func)) = self.peek() {
                 break;
@@ -153,8 +153,12 @@ impl Parser {
     }
 
     fn parse_global_vars(&mut self) -> Result<Statement, ParseError> {
-        match self.next() {
-            Some(Token::Keyword(Keyword::Const)) => self.parse_declare(Size::Byte, "&str"),
+        let ne = self.next();
+        match ne {
+            Some(TokenType {
+                token: Token::Keyword(Keyword::Const),
+                val: _,
+            }) => self.parse_declare(Size::Byte, "&str"),
             other => {
                 self.push(other);
                 Ok(Statement::Exp(self.parse_expression()?))
@@ -196,7 +200,13 @@ impl Parser {
 
         self.match_token(Token::CloseBrace)?;
 
-        Ok(Function { is_async, name, return_type, arguments, statements })
+        Ok(Function {
+            is_async,
+            name,
+            return_type,
+            arguments,
+            statements,
+        })
     }
 
     fn parse_return(&mut self) -> Result<Type, ParseError> {
@@ -220,18 +230,44 @@ impl Parser {
     }
 
     fn parse_statement(&mut self) -> Result<Statement, ParseError> {
-        match self.next() {
-            Some(Token::Keyword(Keyword::Int)) => self.parse_declare(Size::Int, "int"),
-            Some(Token::Keyword(Keyword::Let)) => self.parse_declare(Size::Byte, ""),
-            Some(Token::Keyword(Keyword::Bool)) => self.parse_declare(Size::Byte, "bool"),
-            Some(Token::Keyword(Keyword::Const)) => self.parse_declare(Size::Byte, ""),
-            Some(Token::Keyword(Keyword::String)) => self.parse_declare(Size::Byte, "str"),
-            Some(Token::Keyword(Keyword::Return)) => {
-                Ok(Statement::Return(self.parse_expression()?))
-            }
-            Some(Token::Keyword(Keyword::If)) => self.parse_if_statement(),
-            Some(Token::Keyword(Keyword::While)) => self.parse_while_statement(),
-            Some(Token::OpenBrace) => self.parse_compond_statement(),
+        let ne = self.next();
+        match ne {
+            Some(TokenType {
+                token: Token::Keyword(Keyword::Int),
+                val: _,
+            }) => self.parse_declare(Size::Int, "int"),
+            Some(TokenType {
+                token: Token::Keyword(Keyword::Let),
+                val: _,
+            }) => self.parse_declare(Size::Byte, ""),
+            Some(TokenType {
+                token: Token::Keyword(Keyword::Bool),
+                val: _,
+            }) => self.parse_declare(Size::Byte, "bool"),
+            Some(TokenType {
+                token: Token::Keyword(Keyword::Const),
+                val: _,
+            }) => self.parse_declare(Size::Byte, ""),
+            Some(TokenType {
+                token: Token::Keyword(Keyword::String),
+                val: _,
+            }) => self.parse_declare(Size::Byte, "str"),
+            Some(TokenType {
+                token: Token::Keyword(Keyword::Return),
+                val: _,
+            }) => Ok(Statement::Return(self.parse_expression()?)),
+            Some(TokenType {
+                token: Token::Keyword(Keyword::If),
+                val: _,
+            }) => self.parse_if_statement(),
+            Some(TokenType {
+                token: Token::Keyword(Keyword::While),
+                val: _,
+            }) => self.parse_while_statement(),
+            Some(TokenType {
+                token: Token::OpenBrace,
+                val: _,
+            }) => self.parse_compond_statement(),
             other => {
                 self.push(other);
                 Ok(Statement::Exp(self.parse_expression()?))
@@ -249,7 +285,7 @@ impl Parser {
     }
 
     fn parse_if_statement(&mut self) -> Result<Statement, ParseError> {
-        match self.next_token() {
+        match self.next_token().token {
             Token::OpenParen => {
                 let condition = self.parse_expression()?;
                 self.match_token(Token::CloseParen)?;
@@ -275,7 +311,7 @@ impl Parser {
     }
 
     fn parse_while_statement(&mut self) -> Result<Statement, ParseError> {
-        match self.next_token() {
+        match self.next_token().token {
             Token::OpenParen => {
                 let condition = self.parse_expression()?;
                 self.match_token(Token::CloseParen)?;
@@ -292,11 +328,18 @@ impl Parser {
     }
 
     fn parse_declare(&mut self, size: Size, t: &str) -> Result<Statement, ParseError> {
-        match (self.next_token(), self.peek()) {
+        match (self.next_token().token, self.peek()) {
             (Token::Identifier(name), Some(Token::Assign)) => {
                 self.drop(1);
                 let exp = self.parse_expression()?;
-                Ok(Statement::Declare(Variable { name, size, t: t.to_string()}, Some(exp)))
+                Ok(Statement::Declare(
+                    Variable {
+                        name,
+                        size,
+                        t: t.to_string(),
+                    },
+                    Some(exp),
+                ))
             }
             _ => Err(ParseError::UnassignedVariable),
         }
@@ -340,40 +383,119 @@ impl Parser {
 
     fn parse_assignment_expression(&mut self) -> Result<Expression, ParseError> {
         match (self.next(), self.next()) {
-            (Some(Token::Identifier(name)), Some(Token::Assign)) => {
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::Assign,
+                    val: _,
+                }),
+            ) => {
                 let exp = self.parse_expression()?;
                 Ok(Expression::Assign(name, Box::new(exp)))
             }
-            (Some(Token::Identifier(name)), Some(Token::AssignAdd)) => {
-                self.parse_assign_op(BinOp::Addition, &name)
-            }
-            (Some(Token::Identifier(name)), Some(Token::AssignSub)) => {
-                self.parse_assign_op(BinOp::Subtraction, &name)
-            }
-            (Some(Token::Identifier(name)), Some(Token::AssignMul)) => {
-                self.parse_assign_op(BinOp::Multiplication, &name)
-            }
-            (Some(Token::Identifier(name)), Some(Token::AssignDiv)) => {
-                self.parse_assign_op(BinOp::Division, &name)
-            }
-            (Some(Token::Identifier(name)), Some(Token::AssignMod)) => {
-                self.parse_assign_op(BinOp::Modulus, &name)
-            }
-            (Some(Token::Identifier(name)), Some(Token::AssignBitLeft)) => {
-                self.parse_assign_op(BinOp::BitwiseLeft, &name)
-            }
-            (Some(Token::Identifier(name)), Some(Token::AssignBitRight)) => {
-                self.parse_assign_op(BinOp::BitwiseRight, &name)
-            }
-            (Some(Token::Identifier(name)), Some(Token::AssignAnd)) => {
-                self.parse_assign_op(BinOp::BitwiseAnd, &name)
-            }
-            (Some(Token::Identifier(name)), Some(Token::AssignOr)) => {
-                self.parse_assign_op(BinOp::BitwiseOr, &name)
-            }
-            (Some(Token::Identifier(name)), Some(Token::AssignXor)) => {
-                self.parse_assign_op(BinOp::BitwiseXor, &name)
-            }
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::AssignAdd,
+                    val: _,
+                }),
+            ) => self.parse_assign_op(BinOp::Addition, &name),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::AssignSub,
+                    val: _,
+                }),
+            ) => self.parse_assign_op(BinOp::Subtraction, &name),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::AssignMul,
+                    val: _,
+                }),
+            ) => self.parse_assign_op(BinOp::Multiplication, &name),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::AssignDiv,
+                    val: _,
+                }),
+            ) => self.parse_assign_op(BinOp::Division, &name),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::AssignMod,
+                    val: _,
+                }),
+            ) => self.parse_assign_op(BinOp::Modulus, &name),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::AssignBitLeft,
+                    val: _,
+                }),
+            ) => self.parse_assign_op(BinOp::BitwiseLeft, &name),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::AssignBitRight,
+                    val: _,
+                }),
+            ) => self.parse_assign_op(BinOp::BitwiseRight, &name),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::AssignAnd,
+                    val: _,
+                }),
+            ) => self.parse_assign_op(BinOp::BitwiseAnd, &name),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::AssignOr,
+                    val: _,
+                }),
+            ) => self.parse_assign_op(BinOp::BitwiseOr, &name),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(TokenType {
+                    token: Token::AssignXor,
+                    val: _,
+                }),
+            ) => self.parse_assign_op(BinOp::BitwiseXor, &name),
             (a, b) => {
                 self.push(b);
                 self.push(a);
@@ -456,46 +578,129 @@ impl Parser {
 
     fn parse_factor(&mut self) -> Result<Expression, ParseError> {
         match (self.next(), self.peek()) {
-            (Some(Token::Literal(Value::Char(c))), _) => {
-                Ok(Expression::Char(c.chars().as_str().parse().unwrap()))
-            }
-            (Some(Token::Literal(Value::Int(num))), _) => Ok(Expression::Int(num)),
-            (Some(Token::Literal(Value::MLStr(num))), _) => Ok(Expression::MLStr(num)),
-            (Some(Token::Identifier(name)), Some(Token::Increment)) => {
-                self.parse_inc_op(BinOp::Addition, &name, true)
-            }
-            (Some(Token::Identifier(name)), Some(Token::Decrement)) => {
-                self.parse_inc_op(BinOp::Subtraction, &name, true)
-            }
-            (Some(Token::Increment), Some(Token::Identifier(name))) => {
-                self.parse_inc_op(BinOp::Addition, &name, false)
-            }
-            (Some(Token::Decrement), Some(Token::Identifier(name))) => {
-                self.parse_inc_op(BinOp::Subtraction, &name, false)
-            }
-            (Some(Token::OpenParen), _) => {
+            (
+                Some(TokenType {
+                    token: Token::Literal(Value::Char(c)),
+                    val: _,
+                }),
+                _,
+            ) => Ok(Expression::Char(c.chars().as_str().parse().unwrap())),
+            (
+                Some(TokenType {
+                    token: Token::Literal(Value::Int(num)),
+                    val: _,
+                }),
+                _,
+            ) => Ok(Expression::Int(num)),
+            (
+                Some(TokenType {
+                    token: Token::Literal(Value::MLStr(num)),
+                    val: _,
+                }),
+                _,
+            ) => Ok(Expression::MLStr(num)),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(Token::Increment),
+            ) => self.parse_inc_op(BinOp::Addition, &name, true),
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                Some(Token::Decrement),
+            ) => self.parse_inc_op(BinOp::Subtraction, &name, true),
+            (
+                Some(TokenType {
+                    token: Token::Increment,
+                    val: _,
+                }),
+                Some(Token::Identifier(name)),
+            ) => self.parse_inc_op(BinOp::Addition, &name, false),
+            (
+                Some(TokenType {
+                    token: Token::Decrement,
+                    val: _,
+                }),
+                Some(Token::Identifier(name)),
+            ) => self.parse_inc_op(BinOp::Subtraction, &name, false),
+            (
+                Some(TokenType {
+                    token: Token::OpenParen,
+                    val: _,
+                }),
+                _,
+            ) => {
                 let exp = self.parse_expression()?;
                 self.match_token(Token::CloseParen)?;
                 Ok(exp)
             }
-            (Some(Token::Identifier(name)), _) => match self.peek() {
+            (
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }),
+                _,
+            ) => match self.peek() {
                 Some(Token::OpenParen) => Ok(Expression::FunctionCall(
                     name,
                     self.parse_function_arguments()?,
                 )),
                 _ => Ok(Expression::Variable(name)),
             },
-            (Some(op @ Token::Negation), _)
-            | (Some(op @ Token::LogicalNeg), _)
-            | (Some(op @ Token::BitComp), _) => {
+            (
+                Some(
+                    op
+                    @
+                    TokenType {
+                        token: Token::Negation,
+                        val: _,
+                    },
+                ),
+                _,
+            )
+            | (
+                Some(
+                    op
+                    @
+                    TokenType {
+                        token: Token::LogicalNeg,
+                        val: _,
+                    },
+                ),
+                _,
+            )
+            | (
+                Some(
+                    op
+                    @
+                    TokenType {
+                        token: Token::BitComp,
+                        val: _,
+                    },
+                ),
+                _,
+            ) => {
                 let factor = self.parse_factor()?;
-                Ok(Expression::UnOp(op.into(), Box::new(factor)))
+                Ok(Expression::UnOp(op.token.into(), Box::new(factor)))
             }
-            (Some(Token::BitwiseAnd), _) => match self.next() {
-                Some(Token::Identifier(name)) => Ok(Expression::VariableRef(name)),
+            (
+                Some(TokenType {
+                    token: Token::BitwiseAnd,
+                    val: _,
+                }),
+                _,
+            ) => match self.next() {
+                Some(TokenType {
+                    token: Token::Identifier(name),
+                    val: _,
+                }) => Ok(Expression::VariableRef(name)),
                 Some(received) => Err(ParseError::UnexpectedToken {
                     expected: ParserDescriptor::AnyVariable,
-                    received,
+                    received: received.token,
                 }),
                 _ => Err(ParseError::Unknown),
             },
@@ -532,16 +737,32 @@ impl Parser {
                 }
             };
             let size = match self.next() {
-                Some(Token::Keyword(Keyword::Int)) => Ok(Size::Int),
-                Some(Token::Keyword(Keyword::String)) => Ok(Size::Byte),
-                Some(Token::Keyword(Keyword::MLstr)) => Ok(Size::Byte),
-                Some(Token::Keyword(Keyword::Bool)) => Ok(Size::Byte),
+                Some(TokenType {
+                    token: Token::Keyword(Keyword::Int),
+                    val: _,
+                }) => Ok(Size::Int),
+                Some(TokenType {
+                    token: Token::Keyword(Keyword::String),
+                    val: _,
+                }) => Ok(Size::Byte),
+                Some(TokenType {
+                    token: Token::Keyword(Keyword::MLstr),
+                    val: _,
+                }) => Ok(Size::Byte),
+                Some(TokenType {
+                    token: Token::Keyword(Keyword::Bool),
+                    val: _,
+                }) => Ok(Size::Byte),
                 _ => Err(ParseError::UnexpectedType {
                     expected: Type::Int,
                     received: Type::Char,
                 }),
             }?;
-            arguments.push(Variable { name, size, t: t.to_string() });
+            arguments.push(Variable {
+                name,
+                size,
+                t: t.to_string(),
+            });
             if let Some(Token::Comma) = self.peek() {
                 self.next();
             }
@@ -562,7 +783,7 @@ impl Parser {
         loop {
             match self.peek() {
                 Some(ref token) if matching.contains(token) => {
-                    let op = self.next().unwrap().into();
+                    let op = self.next().unwrap().token.into();
                     let next_term = next(self);
                     term = Expression::BinOp(op, Box::new(term), Box::new(next_term?))
                 }

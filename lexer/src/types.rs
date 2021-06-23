@@ -4,7 +4,7 @@ use std::str::Chars;
 
 #[derive(Debug)]
 pub struct TokenParser<'a> {
-    pub tokens: Vec<Token>,
+    pub tokens: Vec<TokenType>,
     iter: Peekable<Chars<'a>>,
 }
 
@@ -16,12 +16,12 @@ impl<'a> TokenParser<'a> {
         }
     }
 
-    pub fn push(&mut self, token: Token) {
+    pub fn push(&mut self, token: TokenType) {
         self.iter.next();
         self.tokens.push(token);
     }
 
-    pub fn push_back(&mut self, token: Token) {
+    pub fn push_back(&mut self, token: TokenType) {
         self.tokens.push(token);
     }
 
@@ -47,8 +47,8 @@ impl<'a> TokenParser<'a> {
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct TokenType {
-    token: Token,
-    val: String,
+    pub(crate) token: Token,
+    pub(crate) val: String,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]

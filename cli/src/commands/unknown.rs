@@ -76,8 +76,6 @@ Flags:
             let mut rustcompiler = RustCompiler::new(parsedval);
             println!("{}", rustcompiler.compile());
         }
-        // compile(parsedval);
-        // println!("{:#?}", parse.parse());
         Ok(())
     }
 }
