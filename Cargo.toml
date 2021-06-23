@@ -2,6 +2,6 @@
 members = [
 	"lexer",
 	"cli",
-	# "torq_llvm",
+	"torq_llvm",
 	"compiler",
 ]

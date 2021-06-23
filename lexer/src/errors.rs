@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::{ParserDescriptor, Token, TokenType, Type};
+use crate::{ParserDescriptor, Token, Type};
 
 #[derive(Error, Debug)]
 pub enum TokenizeError {

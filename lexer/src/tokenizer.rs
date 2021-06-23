@@ -30,7 +30,7 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
                     token: Token::CloseSquareParen,
                     val: String::from("]"),
                 }),
-                ' ' | '\t' | '\r' | '\n' => tokens.drop(),
+                ' ' | '\t' | '\r' | '\n' => tokens.t_drop(),
                 'a'..='z' | 'A'..='Z' => {
                     let word: &str = &tokens.get_string(|x| x.is_ascii() && x.is_alphanumeric());
                     match word {
@@ -130,6 +130,8 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
                 }
                 '0'..='9' => {
                     let word = tokens.get_string(|x| x.is_ascii() && (x.is_digit(16) || x == &'x'));
+
+                    #[allow(clippy::manual_strip)]
                     let int: u32 = if word.starts_with("0x") {
                         u32::from_str_radix(&word[2..], 16)?
                     } else {
@@ -336,7 +338,7 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
         } else if c == '\n' {
             is_close_single_line = true;
         } else {
-            tokens.drop();
+            tokens.t_drop();
         }
     }
     Ok(tokens.tokens)

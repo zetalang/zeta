@@ -29,7 +29,7 @@ impl<'a> TokenParser<'a> {
         self.iter.next()
     }
 
-    pub fn drop(&mut self) {
+    pub fn t_drop(&mut self) {
         self.iter.next();
     }
 
