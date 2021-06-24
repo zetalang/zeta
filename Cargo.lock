@@ -108,6 +108,8 @@ version = "0.1.0"
 dependencies = [
  "codegen",
  "lexer",
+ "llvm-sys",
+ "torq_llvm",
 ]
 
 [[package]]
@@ -495,7 +497,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "torq-llvm"
+name = "torq_llvm"
 version = "0.0.1"
 dependencies = [
  "cmake",

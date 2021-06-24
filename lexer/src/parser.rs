@@ -1,26 +1,26 @@
 use crate::errors::ParseError;
-use crate::{
-    BinOp, Expression, Function, Import, Keyword, ParserDescriptor, Program, Size, Statement,
-    Token, TokenType, Type, Value, Variable,
-};
+use crate::{BinOp, Expression, Function, Import, Keyword, ParserDescriptor, ParsingResult, Program, Size, Statement, Token, TokenType, Type, Value, Variable};
 use std::iter::Peekable;
 use std::vec::IntoIter;
 
 #[derive(Debug)]
 pub struct Parser {
     tokens: Peekable<IntoIter<TokenType>>,
+    rawtokens: Vec<TokenType>,
     peeked: Vec<TokenType>,
 }
 
 impl Parser {
     pub fn new(tokens: Vec<TokenType>) -> Parser {
+        let ntoken = tokens.clone();
         Parser {
             tokens: tokens.into_iter().peekable(),
+            rawtokens: ntoken,
             peeked: Vec::new(),
         }
     }
 
-    pub fn parse(&mut self) -> Result<Program, ParseError> {
+    pub fn parse(&mut self) -> Result<ParsingResult, ParseError> {
         self.parse_program()
     }
 
@@ -103,11 +103,11 @@ impl Parser {
 }
 
 impl Parser {
-    fn parse_program(&mut self) -> Result<Program, ParseError> {
+    fn parse_program(&mut self) -> Result<ParsingResult, ParseError> {
         self.main_parser()
     }
 
-    fn main_parser(&mut self) -> Result<Program, ParseError> {
+    fn main_parser(&mut self) -> Result<ParsingResult, ParseError> {
         let mut functions = Vec::new();
         let mut imports = Vec::new();
         let mut globals = Vec::new();
@@ -122,11 +122,7 @@ impl Parser {
             }
         }
 
-        Ok(Program {
-            imports,
-            func: functions,
-            globals: globals.into_iter().collect(),
-        })
+        Ok(Ok((Program{imports, func: functions, globals}, self.rawtokens.clone())))
     }
 
     fn parse_import_statement(&mut self) -> Result<Import, ParseError> {
@@ -583,6 +579,20 @@ impl Parser {
                 }),
                 _,
             ) => Ok(Expression::Char(c.chars().as_str().parse().unwrap())),
+            (
+                Some(TokenType {
+                    token: Token::Keyword(Keyword::True),
+                    val: _,
+                }),
+                _,
+            ) => Ok(Expression::Bool(true)),
+            (
+                Some(TokenType {
+                    token: Token::Keyword(Keyword::False),
+                    val: _,
+                }),
+                _,
+            ) => Ok(Expression::Bool(false)),
             (
                 Some(TokenType {
                     token: Token::Literal(Value::Int(num)),

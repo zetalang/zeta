@@ -38,7 +38,7 @@ impl RustCompiler {
             }
             Expression::Int(num) => {
                 format!("{}", num)
-            }
+            },
             _ => unimplemented!(),
         }
     }

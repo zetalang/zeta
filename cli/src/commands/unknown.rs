@@ -73,7 +73,7 @@ Flags:
         });
         println!("{:#?}", parsedval);
         if app.has_flag(&["--userust"]) {
-            let rustcompiler = RustCompiler::new(parsedval);
+            let rustcompiler = RustCompiler::new(parsedval.unwrap().0);
             println!("{}", rustcompiler.compile());
         }
         Ok(())

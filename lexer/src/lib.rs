@@ -1,5 +1,5 @@
 pub mod errors;
-mod ops;
+pub mod ops;
 mod parser;
 mod tokenizer;
 mod types;

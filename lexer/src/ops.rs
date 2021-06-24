@@ -1,4 +1,5 @@
-use crate::Token;
+use crate::{Token, TokenType};
+pub type ParsingResult = Result<(Program, Vec<TokenType>), String>;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Size {
@@ -52,6 +53,7 @@ pub enum Expression {
     Char(u64),
     MLStr(u64),
     FunctionCall(String, Vec<Expression>),
+    Bool(bool),
     Variable(String),
     VariableRef(String),
     Assign(String, Box<Expression>),

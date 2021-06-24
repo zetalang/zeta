@@ -38,6 +38,14 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
                             token: Token::Keyword(Keyword::Async),
                             val: String::from("async"),
                         }),
+                        "true" => tokens.push_back(TokenType {
+                            token: Token::Keyword(Keyword::True),
+                            val: String::from("async"),
+                        }),
+                        "false" => tokens.push_back(TokenType {
+                            token: Token::Keyword(Keyword::False),
+                            val: String::from("async"),
+                        }),
                         "int" => tokens.push_back(TokenType {
                             token: Token::Keyword(Keyword::Int),
                             val: String::from("int"),

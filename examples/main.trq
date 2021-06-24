@@ -1,12 +1,5 @@
-const m = `asdasd-asds ${asdsad}`
-const m1 = 'asdasd-asds ${asdsad}'
-const m2 = "asdasd-asds ${asdsad}"
-fn Input(i:str, b: bool){
-
-}
 fn main () { // test 
-	bool a
-	int a = 1
-	str i = "asda"
-	let i = Input(ma, true)
+// 	int a = 1
+// 	str i = "asda"
+	let i = Input("ma", true)
 }

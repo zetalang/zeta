@@ -57,6 +57,8 @@ pub enum Keyword {
     Async,
     String,
     Void,
+    True, 
+    False,
     MLstr,
     Let,
     Func,

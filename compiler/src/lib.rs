@@ -1,3 +1,4 @@
+pub mod compiler;
 use codegen::{Function as CodegenFunc, Scope};
 use lexer::{Expression, Program, Statement, Type, Variable};
 
@@ -24,6 +25,13 @@ impl RustCompiler {
                                 s = s + "," + &name;
                             }
                         }
+                        Expression::Bool(name) => {
+                            if i == 0 {
+                                s = s + "" + &name.to_string();
+                            } else {
+                                s = s + "," + &name.to_string();
+                            }
+                        }
                         _ => unimplemented!(),
                     };
                 }
@@ -39,13 +47,14 @@ impl RustCompiler {
             Expression::Int(num) => {
                 format!("{}", num)
             }
-            _ => unimplemented!(),
+            other => unimplemented!(),
         }
     }
 
     fn compile_statement(&self, statement: &Statement) -> String {
         match statement {
             Statement::Declare(var, Some(exp)) => {
+                // panic!("{:#?}", exp);
                 format!("let {} = {};", var.name, self.compile_expr(exp, &var.t))
             }
             _ => unimplemented!(),
@@ -126,6 +135,7 @@ mod tests {
     fn it_works() {
         let tokens = tokenize("const x = 23").unwrap();
         let mut parser = Parser::new(tokens);
-        let compiler = RustCompiler::new(parser.parse().unwrap());
+        let token = parser.parse().unwrap();
+        let compiler = RustCompiler::new(token.unwrap().0);
     }
 }
