@@ -1,4 +1,4 @@
-pub mod compiler;
+// pub mod compiler;
 use codegen::{Function as CodegenFunc, Scope};
 use lexer::{Expression, Program, Statement, Type, Variable};
 

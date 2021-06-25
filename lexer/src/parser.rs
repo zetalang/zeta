@@ -1,5 +1,8 @@
 use crate::errors::ParseError;
-use crate::{BinOp, Expression, Function, Import, Keyword, ParserDescriptor, ParsingResult, Program, Size, Statement, Token, TokenType, Type, Value, Variable};
+use crate::{
+    BinOp, Expression, Function, Import, Keyword, ParserDescriptor, ParsingResult, Program, Size,
+    Statement, Token, TokenType, Type, Value, Variable,
+};
 use std::iter::Peekable;
 use std::vec::IntoIter;
 
@@ -122,7 +125,14 @@ impl Parser {
             }
         }
 
-        Ok(Ok((Program{imports, func: functions, globals}, self.rawtokens.clone())))
+        Ok(Ok((
+            Program {
+                imports,
+                func: functions,
+                globals,
+            },
+            self.rawtokens.clone(),
+        )))
     }
 
     fn parse_import_statement(&mut self) -> Result<Import, ParseError> {
@@ -154,6 +164,7 @@ impl Parser {
             Some(TokenType {
                 token: Token::Keyword(Keyword::Const),
                 val: _,
+                linenum: line,
             }) => self.parse_declare(Size::Byte, "&str"),
             other => {
                 self.push(other);
@@ -229,38 +240,47 @@ impl Parser {
             Some(TokenType {
                 token: Token::Keyword(Keyword::Int),
                 val: _,
+                linenum: line,
             }) => self.parse_declare(Size::Int, "int"),
             Some(TokenType {
                 token: Token::Keyword(Keyword::Let),
                 val: _,
+                linenum: line,
             }) => self.parse_declare(Size::Byte, ""),
             Some(TokenType {
                 token: Token::Keyword(Keyword::Bool),
                 val: _,
+                linenum: line,
             }) => self.parse_declare(Size::Byte, "bool"),
             Some(TokenType {
                 token: Token::Keyword(Keyword::Const),
                 val: _,
+                linenum: line,
             }) => self.parse_declare(Size::Byte, ""),
             Some(TokenType {
                 token: Token::Keyword(Keyword::String),
                 val: _,
+                linenum: line,
             }) => self.parse_declare(Size::Byte, "str"),
             Some(TokenType {
                 token: Token::Keyword(Keyword::Return),
                 val: _,
+                linenum: line,
             }) => Ok(Statement::Return(self.parse_expression()?)),
             Some(TokenType {
                 token: Token::Keyword(Keyword::If),
                 val: _,
+                linenum: line,
             }) => self.parse_if_statement(),
             Some(TokenType {
                 token: Token::Keyword(Keyword::While),
                 val: _,
+                linenum: line,
             }) => self.parse_while_statement(),
             Some(TokenType {
                 token: Token::OpenBrace,
                 val: _,
+                linenum: line,
             }) => self.parse_compond_statement(),
             other => {
                 self.push(other);
@@ -381,10 +401,12 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::Assign,
                     val: _,
+                    linenum: line1,
                 }),
             ) => {
                 let exp = self.parse_expression()?;
@@ -394,100 +416,120 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::AssignAdd,
                     val: _,
+                    linenum: line1,
                 }),
             ) => self.parse_assign_op(BinOp::Addition, &name),
             (
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::AssignSub,
                     val: _,
+                    linenum: line1,
                 }),
             ) => self.parse_assign_op(BinOp::Subtraction, &name),
             (
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::AssignMul,
                     val: _,
+                    linenum: line1,
                 }),
             ) => self.parse_assign_op(BinOp::Multiplication, &name),
             (
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::AssignDiv,
                     val: _,
+                    linenum: line1,
                 }),
             ) => self.parse_assign_op(BinOp::Division, &name),
             (
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::AssignMod,
                     val: _,
+                    linenum: line1,
                 }),
             ) => self.parse_assign_op(BinOp::Modulus, &name),
             (
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::AssignBitLeft,
                     val: _,
+                    linenum: line1,
                 }),
             ) => self.parse_assign_op(BinOp::BitwiseLeft, &name),
             (
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::AssignBitRight,
                     val: _,
+                    linenum: line1,
                 }),
             ) => self.parse_assign_op(BinOp::BitwiseRight, &name),
             (
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::AssignAnd,
                     val: _,
+                    linenum: line1,
                 }),
             ) => self.parse_assign_op(BinOp::BitwiseAnd, &name),
             (
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::AssignOr,
                     val: _,
+                    linenum: line1,
                 }),
             ) => self.parse_assign_op(BinOp::BitwiseOr, &name),
             (
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(TokenType {
                     token: Token::AssignXor,
                     val: _,
+                    linenum: line1,
                 }),
             ) => self.parse_assign_op(BinOp::BitwiseXor, &name),
             (a, b) => {
@@ -576,6 +618,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Literal(Value::Char(c)),
                     val: _,
+                    linenum: line,
                 }),
                 _,
             ) => Ok(Expression::Char(c.chars().as_str().parse().unwrap())),
@@ -583,6 +626,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Keyword(Keyword::True),
                     val: _,
+                    linenum: line,
                 }),
                 _,
             ) => Ok(Expression::Bool(true)),
@@ -590,6 +634,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Keyword(Keyword::False),
                     val: _,
+                    linenum: line,
                 }),
                 _,
             ) => Ok(Expression::Bool(false)),
@@ -597,6 +642,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Literal(Value::Int(num)),
                     val: _,
+                    linenum: line,
                 }),
                 _,
             ) => Ok(Expression::Int(num)),
@@ -604,6 +650,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Literal(Value::MLStr(num)),
                     val: _,
+                    linenum: line,
                 }),
                 _,
             ) => Ok(Expression::MLStr(num)),
@@ -611,6 +658,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(Token::Increment),
             ) => self.parse_inc_op(BinOp::Addition, &name, true),
@@ -618,6 +666,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 Some(Token::Decrement),
             ) => self.parse_inc_op(BinOp::Subtraction, &name, true),
@@ -625,6 +674,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Increment,
                     val: _,
+                    linenum: line,
                 }),
                 Some(Token::Identifier(name)),
             ) => self.parse_inc_op(BinOp::Addition, &name, false),
@@ -632,6 +682,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Decrement,
                     val: _,
+                    linenum: line,
                 }),
                 Some(Token::Identifier(name)),
             ) => self.parse_inc_op(BinOp::Subtraction, &name, false),
@@ -639,6 +690,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::OpenParen,
                     val: _,
+                    linenum: line,
                 }),
                 _,
             ) => {
@@ -650,6 +702,7 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }),
                 _,
             ) => match self.peek() {
@@ -666,6 +719,7 @@ impl Parser {
                     TokenType {
                         token: Token::Negation,
                         val: _,
+                        linenum: _,
                     },
                 ),
                 _,
@@ -677,6 +731,7 @@ impl Parser {
                     TokenType {
                         token: Token::LogicalNeg,
                         val: _,
+                        linenum: _,
                     },
                 ),
                 _,
@@ -688,6 +743,7 @@ impl Parser {
                     TokenType {
                         token: Token::BitComp,
                         val: _,
+                        linenum: _,
                     },
                 ),
                 _,
@@ -699,12 +755,14 @@ impl Parser {
                 Some(TokenType {
                     token: Token::BitwiseAnd,
                     val: _,
+                    linenum: line,
                 }),
                 _,
             ) => match self.next() {
                 Some(TokenType {
                     token: Token::Identifier(name),
                     val: _,
+                    linenum: line,
                 }) => Ok(Expression::VariableRef(name)),
                 Some(received) => Err(ParseError::UnexpectedToken {
                     expected: ParserDescriptor::AnyVariable,
@@ -746,18 +804,22 @@ impl Parser {
                 Some(TokenType {
                     token: Token::Keyword(Keyword::Int),
                     val: _,
+                    linenum: line,
                 }) => Ok(Size::Int),
                 Some(TokenType {
                     token: Token::Keyword(Keyword::String),
                     val: _,
+                    linenum: line,
                 }) => Ok(Size::Byte),
                 Some(TokenType {
                     token: Token::Keyword(Keyword::MLstr),
                     val: _,
+                    linenum: line,
                 }) => Ok(Size::Byte),
                 Some(TokenType {
                     token: Token::Keyword(Keyword::Bool),
                     val: _,
+                    linenum: line,
                 }) => Ok(Size::Byte),
                 _ => Err(ParseError::UnexpectedType {
                     expected: Type::Int,

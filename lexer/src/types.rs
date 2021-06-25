@@ -49,6 +49,7 @@ impl<'a> TokenParser<'a> {
 pub struct TokenType {
     pub(crate) token: Token,
     pub(crate) val: String,
+    pub(crate) linenum: i32,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]

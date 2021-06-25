@@ -2,353 +2,417 @@ use crate::{errors::TokenizeError, *};
 
 pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
     let mut tokens = TokenParser::new(contents);
-    let mut is_close_single_line = true;
+    let mut linenum = 1;
     while let Some(&c) = tokens.peek() {
-        if is_close_single_line {
-            match c {
-                '{' => tokens.push(TokenType {
-                    token: Token::OpenBrace,
-                    val: String::from("{"),
-                }),
-                '}' => tokens.push(TokenType {
-                    token: Token::CloseBrace,
-                    val: String::from("}"),
-                }),
-                '(' => tokens.push(TokenType {
-                    token: Token::OpenParen,
-                    val: String::from("("),
-                }),
-                ')' => tokens.push(TokenType {
-                    token: Token::CloseParen,
-                    val: String::from(")"),
-                }),
-                '[' => tokens.push(TokenType {
-                    token: Token::OpenSquareParen,
-                    val: String::from("["),
-                }),
-                ']' => tokens.push(TokenType {
-                    token: Token::CloseSquareParen,
-                    val: String::from("]"),
-                }),
-                ' ' | '\t' | '\r' | '\n' => tokens.t_drop(),
-                'a'..='z' | 'A'..='Z' => {
-                    let word: &str = &tokens.get_string(|x| x.is_ascii() && x.is_alphanumeric());
-                    match word {
-                        "async" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Async),
-                            val: String::from("async"),
-                        }),
-                        "true" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::True),
-                            val: String::from("async"),
-                        }),
-                        "false" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::False),
-                            val: String::from("async"),
-                        }),
-                        "int" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Int),
-                            val: String::from("int"),
-                        }),
-                        "str" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::String),
-                            val: String::from("str"),
-                        }),
-                        "fn" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Func),
-                            val: String::from("fn"),
-                        }),
-                        "let" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Let),
-                            val: String::from("let"),
-                        }),
-                        "mlstr" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::MLstr),
-                            val: String::from("mlstr"),
-                        }),
-                        "return" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Return),
-                            val: String::from("return"),
-                        }),
-                        "void" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Void),
-                            val: String::from("void"),
-                        }),
-                        "bool" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Bool),
-                            val: String::from("bool"),
-                        }),
-                        "if" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::If),
-                            val: String::from("if"),
-                        }),
-                        "else" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Else),
-                            val: String::from("else"),
-                        }),
-                        "while" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::While),
-                            val: String::from("while"),
-                        }),
-                        "const" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Const),
-                            val: String::from("const"),
-                        }),
-                        "use" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Use),
-                            val: String::from("use"),
-                        }),
-                        "for" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::For),
-                            val: String::from("for"),
-                        }),
-                        "pub" => tokens.push_back(TokenType {
-                            token: Token::Keyword(Keyword::Pub),
-                            val: String::from("pub"),
-                        }),
-                        other => tokens.push_back(TokenType {
-                            token: Token::Identifier(word.to_string()),
-                            val: String::from(other),
-                        }),
-                    }
+        match c {
+            '{' => tokens.push(TokenType {
+                token: Token::OpenBrace,
+                val: String::from("{"),
+                linenum,
+            }),
+            '}' => tokens.push(TokenType {
+                token: Token::CloseBrace,
+                val: String::from("}"),
+                linenum,
+            }),
+            '(' => tokens.push(TokenType {
+                token: Token::OpenParen,
+                val: String::from("("),
+                linenum,
+            }),
+            ')' => tokens.push(TokenType {
+                token: Token::CloseParen,
+                val: String::from(")"),
+                linenum,
+            }),
+            '[' => tokens.push(TokenType {
+                token: Token::OpenSquareParen,
+                val: String::from("["),
+                linenum,
+            }),
+            ']' => tokens.push(TokenType {
+                token: Token::CloseSquareParen,
+                val: String::from("]"),
+                linenum,
+            }),
+            ' ' | '\t' | '\r' => tokens.t_drop(),
+            '\n' => {
+                linenum += 1;
+                tokens.t_drop()
+            }
+            'a'..='z' | 'A'..='Z' => {
+                let word: &str = &tokens.get_string(|x| x.is_ascii() && x.is_alphanumeric());
+                match word {
+                    "async" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Async),
+                        val: String::from("async"),
+                        linenum,
+                    }),
+                    "true" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::True),
+                        val: String::from("true"),
+                        linenum,
+                    }),
+                    "false" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::False),
+                        val: String::from("async"),
+                        linenum,
+                    }),
+                    "int" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Int),
+                        val: String::from("int"),
+                        linenum,
+                    }),
+                    "str" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::String),
+                        val: String::from("str"),
+                        linenum,
+                    }),
+                    "fn" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Func),
+                        val: String::from("fn"),
+                        linenum,
+                    }),
+                    "let" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Let),
+                        val: String::from("let"),
+                        linenum,
+                    }),
+                    "mlstr" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::MLstr),
+                        val: String::from("mlstr"),
+                        linenum,
+                    }),
+                    "return" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Return),
+                        val: String::from("return"),
+                        linenum,
+                    }),
+                    "void" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Void),
+                        val: String::from("void"),
+                        linenum,
+                    }),
+                    "bool" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Bool),
+                        val: String::from("bool"),
+                        linenum,
+                    }),
+                    "if" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::If),
+                        val: String::from("if"),
+                        linenum,
+                    }),
+                    "else" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Else),
+                        val: String::from("else"),
+                        linenum,
+                    }),
+                    "while" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::While),
+                        val: String::from("while"),
+                        linenum,
+                    }),
+                    "const" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Const),
+                        val: String::from("const"),
+                        linenum,
+                    }),
+                    "use" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Use),
+                        val: String::from("use"),
+                        linenum,
+                    }),
+                    "for" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::For),
+                        val: String::from("for"),
+                        linenum,
+                    }),
+                    "pub" => tokens.push_back(TokenType {
+                        token: Token::Keyword(Keyword::Pub),
+                        val: String::from("pub"),
+                        linenum,
+                    }),
+                    other => tokens.push_back(TokenType {
+                        token: Token::Identifier(word.to_string()),
+                        val: String::from(other),
+                        linenum,
+                    }),
                 }
-                '`' => {
-                    tokens.p_next();
-                    let t = tokens.get_string(|s| (s != &'`'));
-                    tokens.push(TokenType {
-                        token: Token::Identifier(t),
-                        val: String::from("`"),
-                    })
-                }
-                '"' => {
-                    tokens.p_next();
-                    let t = tokens.get_string(|s| (s != &'"'));
-                    tokens.push(TokenType {
-                        token: Token::Identifier(t),
-                        val: String::from('"'),
-                    })
-                }
-                '\'' => {
-                    tokens.p_next();
-                    let t = tokens.get_string(|s| (s != &'\''));
-                    tokens.push(TokenType {
-                        token: Token::Identifier(t),
-                        val: String::from("'"),
-                    })
-                }
-                '0'..='9' => {
-                    let word = tokens.get_string(|x| x.is_ascii() && (x.is_digit(16) || x == &'x'));
+            }
+            '`' => {
+                tokens.p_next();
+                let t = tokens.get_string(|s| (s != &'`'));
+                tokens.push(TokenType {
+                    token: Token::Identifier(t),
+                    val: String::from("`"),
+                    linenum,
+                })
+            }
+            '"' => {
+                tokens.p_next();
+                let t = tokens.get_string(|s| (s != &'"'));
+                tokens.push(TokenType {
+                    token: Token::Identifier(t),
+                    val: String::from('"'),
+                    linenum,
+                })
+            }
+            '\'' => {
+                tokens.p_next();
+                let t = tokens.get_string(|s| (s != &'\''));
+                tokens.push(TokenType {
+                    token: Token::Identifier(t),
+                    val: String::from("'"),
+                    linenum,
+                })
+            }
+            '0'..='9' => {
+                let word = tokens.get_string(|x| x.is_ascii() && (x.is_digit(16) || x == &'x'));
 
-                    #[allow(clippy::manual_strip)]
-                    let int: u32 = if word.starts_with("0x") {
-                        u32::from_str_radix(&word[2..], 16)?
-                    } else {
-                        word.parse()?
-                    };
-                    tokens.push_back(TokenType {
-                        token: Token::Literal(Value::Int(int)),
-                        val: int.to_string(),
+                #[allow(clippy::manual_strip)]
+                let int: u32 = if word.starts_with("0x") {
+                    u32::from_str_radix(&word[2..], 16)?
+                } else {
+                    word.parse()?
+                };
+                tokens.push_back(TokenType {
+                    token: Token::Literal(Value::Int(int)),
+                    val: int.to_string(),
+                    linenum,
+                })
+            }
+            '~' => tokens.push(TokenType {
+                token: Token::BitComp,
+                val: String::from('~'),
+                linenum,
+            }),
+            ',' => tokens.push(TokenType {
+                token: Token::Comma,
+                val: String::from(","),
+                linenum,
+            }),
+            multi => match (tokens.p_next().unwrap(), tokens.peek()) {
+                ('&', Some(&'&')) => tokens.push(TokenType {
+                    token: Token::And,
+                    val: String::from("&&"),
+                    linenum,
+                }),
+                ('|', Some(&'|')) => tokens.push(TokenType {
+                    token: Token::Or,
+                    val: String::from("||"),
+                    linenum,
+                }),
+
+                ('=', Some(&'>')) => {
+                    tokens.p_next();
+                    tokens.push(TokenType {
+                        token: Token::AsignFunc,
+                        val: String::from("=>"),
+                        linenum,
                     })
                 }
-                '~' => tokens.push(TokenType {
-                    token: Token::BitComp,
-                    val: String::from('~'),
-                }),
-                ',' => tokens.push(TokenType {
-                    token: Token::Comma,
+                ('=', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::Equal,
                     val: String::from(","),
+                    linenum,
                 }),
-                multi => match (tokens.p_next().unwrap(), tokens.peek()) {
-                    ('&', Some(&'&')) => tokens.push(TokenType {
-                        token: Token::And,
-                        val: String::from("&&"),
-                    }),
-                    ('|', Some(&'|')) => tokens.push(TokenType {
-                        token: Token::Or,
-                        val: String::from("||"),
-                    }),
-
-                    ('=', Some(&'>')) => {
-                        tokens.p_next();
+                ('<', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::LessThanOrEqual,
+                    val: String::from("<="),
+                    linenum,
+                }),
+                ('>', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::GreaterThanOrEqual,
+                    val: String::from(">="),
+                    linenum,
+                }),
+                ('!', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::NotEqual,
+                    val: String::from("!="),
+                    linenum,
+                }),
+                ('<', Some(&'<')) => {
+                    tokens.p_next();
+                    if let Some(&'=') = tokens.peek() {
                         tokens.push(TokenType {
-                            token: Token::AsignFunc,
-                            val: String::from("=>"),
+                            token: Token::AssignBitLeft,
+                            val: String::from("<<="),
+                            linenum,
+                        })
+                    } else {
+                        tokens.push_back(TokenType {
+                            token: Token::BitwiseLeft,
+                            val: String::from("<<"),
+                            linenum,
                         })
                     }
-                    ('=', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::Equal,
-                        val: String::from(","),
-                    }),
-                    ('<', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::LessThanOrEqual,
-                        val: String::from("<="),
-                    }),
-                    ('>', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::GreaterThanOrEqual,
-                        val: String::from(">="),
-                    }),
-                    ('!', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::NotEqual,
-                        val: String::from("!="),
-                    }),
-                    ('<', Some(&'<')) => {
-                        tokens.p_next();
-                        if let Some(&'=') = tokens.peek() {
-                            tokens.push(TokenType {
-                                token: Token::AssignBitLeft,
-                                val: String::from("<<="),
-                            })
-                        } else {
-                            tokens.push_back(TokenType {
-                                token: Token::BitwiseLeft,
-                                val: String::from("<<"),
-                            })
-                        }
+                }
+                ('>', Some(&'>')) => {
+                    tokens.p_next();
+                    if let Some(&'=') = tokens.peek() {
+                        tokens.push(TokenType {
+                            token: Token::AssignBitRight,
+                            val: String::from(">>="),
+                            linenum,
+                        })
+                    } else {
+                        tokens.push_back(TokenType {
+                            token: Token::BitwiseRight,
+                            val: String::from(">>"),
+                            linenum,
+                        })
                     }
-                    ('>', Some(&'>')) => {
-                        tokens.p_next();
-                        if let Some(&'=') = tokens.peek() {
-                            tokens.push(TokenType {
-                                token: Token::AssignBitRight,
-                                val: String::from(">>="),
-                            })
-                        } else {
-                            tokens.push_back(TokenType {
-                                token: Token::BitwiseRight,
-                                val: String::from(">>"),
-                            })
-                        }
-                    }
-                    ('+', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::AssignAdd,
-                        val: String::from("+="),
-                    }),
-                    ('-', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::AssignSub,
-                        val: String::from("-="),
-                    }),
-                    ('*', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::AssignMul,
-                        val: String::from("*="),
-                    }),
-                    ('/', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::AssignDiv,
-                        val: String::from("/="),
-                    }),
-                    ('/', _) => {
-                        let next = tokens.peek().unwrap();
-                        if next == &'/' {
-                            tokens.p_next();
-                            is_close_single_line = false;
-                        } else {
-                            tokens.push_back(TokenType {
-                                token: Token::Division,
-                                val: String::from("/"),
-                            })
-                        }
-                    }
-                    ('%', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::AssignMod,
-                        val: String::from("%="),
-                    }),
-                    ('&', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::AssignAnd,
-                        val: String::from("&="),
-                    }),
-                    ('|', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::AssignOr,
-                        val: String::from("|="),
-                    }),
-                    ('^', Some(&'=')) => tokens.push(TokenType {
-                        token: Token::AssignXor,
-                        val: String::from("^="),
-                    }),
-                    ('+', Some(&'+')) => tokens.push(TokenType {
-                        token: Token::Increment,
-                        val: String::from("++"),
-                    }),
-                    ('-', Some(&'-')) => tokens.push(TokenType {
-                        token: Token::Decrement,
-                        val: String::from("--"),
-                    }),
-                    (':', Some(&':')) => tokens.push(TokenType {
-                        token: Token::DoubleColon,
-                        val: String::from("::"),
-                    }),
+                }
+                ('+', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::AssignAdd,
+                    val: String::from("+="),
+                    linenum,
+                }),
+                ('-', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::AssignSub,
+                    val: String::from("-="),
+                    linenum,
+                }),
+                ('*', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::AssignMul,
+                    val: String::from("*="),
+                    linenum,
+                }),
+                ('/', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::AssignDiv,
+                    val: String::from("/="),
+                    linenum,
+                }),
+                ('/', _) => {
+                    let next = tokens.peek().unwrap();
+                    tokens.push_back(TokenType {
+                        token: Token::Division,
+                        val: String::from("/"),
+                        linenum,
+                    })
+                }
+                ('%', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::AssignMod,
+                    val: String::from("%="),
+                    linenum,
+                }),
+                ('&', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::AssignAnd,
+                    val: String::from("&="),
+                    linenum,
+                }),
+                ('|', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::AssignOr,
+                    val: String::from("|="),
+                    linenum,
+                }),
+                ('^', Some(&'=')) => tokens.push(TokenType {
+                    token: Token::AssignXor,
+                    val: String::from("^="),
+                    linenum,
+                }),
+                ('+', Some(&'+')) => tokens.push(TokenType {
+                    token: Token::Increment,
+                    val: String::from("++"),
+                    linenum,
+                }),
+                ('-', Some(&'-')) => tokens.push(TokenType {
+                    token: Token::Decrement,
+                    val: String::from("--"),
+                    linenum,
+                }),
+                (':', Some(&':')) => tokens.push(TokenType {
+                    token: Token::DoubleColon,
+                    val: String::from("::"),
+                    linenum,
+                }),
 
-                    ('.', _) => tokens.push_back(TokenType {
-                        token: Token::Dot,
-                        val: String::from("."),
-                    }),
-                    ('$', _) => tokens.push_back(TokenType {
-                        token: Token::Dollar,
-                        val: String::from("$"),
-                    }),
-                    ('#', _) => tokens.push_back(TokenType {
-                        token: Token::HashTag,
-                        val: String::from("#"),
-                    }),
-                    ('<', _) => tokens.push_back(TokenType {
-                        token: Token::LessThan,
-                        val: String::from("<"),
-                    }),
-                    ('>', _) => tokens.push_back(TokenType {
-                        token: Token::GreaterThan,
-                        val: String::from(">"),
-                    }),
-                    ('!', _) => tokens.push_back(TokenType {
-                        token: Token::LogicalNeg,
-                        val: String::from("!"),
-                    }),
-                    ('&', _) => tokens.push_back(TokenType {
-                        token: Token::BitwiseAnd,
-                        val: String::from("&"),
-                    }),
-                    ('|', _) => tokens.push_back(TokenType {
-                        token: Token::BitwiseOr,
-                        val: String::from("|"),
-                    }),
-                    ('=', _) => tokens.push_back(TokenType {
-                        token: Token::Assign,
-                        val: String::from("="),
-                    }),
-                    ('+', _) => tokens.push_back(TokenType {
-                        token: Token::Addition,
-                        val: String::from("+"),
-                    }),
-                    ('-', _) => tokens.push_back(TokenType {
-                        token: Token::Negation,
-                        val: String::from("-"),
-                    }),
-                    ('*', _) => tokens.push_back(TokenType {
-                        token: Token::Multiplication,
-                        val: String::from("*"),
-                    }),
-                    ('%', _) => tokens.push_back(TokenType {
-                        token: Token::Modulus,
-                        val: String::from("%"),
-                    }),
-                    ('^', _) => tokens.push_back(TokenType {
-                        token: Token::BitwiseXor,
-                        val: String::from("^"),
-                    }),
-                    (':', _) => tokens.push_back(TokenType {
-                        token: Token::Colon,
-                        val: String::from(":"),
-                    }),
-                    ('?', _) => tokens.push_back(TokenType {
-                        token: Token::Question,
-                        val: String::from("?"),
-                    }),
-                    _ => return Err(TokenizeError::UnknownToken(multi)),
-                },
-            };
-        } else if c == '\n' {
-            is_close_single_line = true;
-        } else {
-            tokens.t_drop();
-        }
+                ('.', _) => tokens.push_back(TokenType {
+                    token: Token::Dot,
+                    val: String::from("."),
+                    linenum,
+                }),
+                ('$', _) => tokens.push_back(TokenType {
+                    token: Token::Dollar,
+                    val: String::from("$"),
+                    linenum,
+                }),
+                ('#', _) => tokens.push_back(TokenType {
+                    token: Token::HashTag,
+                    linenum,
+                    val: String::from("#"),
+                }),
+                ('<', _) => tokens.push_back(TokenType {
+                    token: Token::LessThan,
+                    val: String::from("<"),
+                    linenum,
+                }),
+                ('>', _) => tokens.push_back(TokenType {
+                    token: Token::GreaterThan,
+                    val: String::from(">"),
+                    linenum,
+                }),
+                ('!', _) => tokens.push_back(TokenType {
+                    token: Token::LogicalNeg,
+                    val: String::from("!"),
+                    linenum,
+                }),
+                ('&', _) => tokens.push_back(TokenType {
+                    linenum,
+                    token: Token::BitwiseAnd,
+                    val: String::from("&"),
+                }),
+                ('|', _) => tokens.push_back(TokenType {
+                    token: Token::BitwiseOr,
+                    linenum,
+                    val: String::from("|"),
+                }),
+                ('=', _) => tokens.push_back(TokenType {
+                    token: Token::Assign,
+                    val: String::from("="),
+                    linenum,
+                }),
+                ('+', _) => tokens.push_back(TokenType {
+                    token: Token::Addition,
+                    val: String::from("+"),
+                    linenum,
+                }),
+                ('-', _) => tokens.push_back(TokenType {
+                    token: Token::Negation,
+                    val: String::from("-"),
+                    linenum,
+                }),
+                ('*', _) => tokens.push_back(TokenType {
+                    token: Token::Multiplication,
+                    val: String::from("*"),
+                    linenum,
+                }),
+                ('%', _) => tokens.push_back(TokenType {
+                    token: Token::Modulus,
+                    val: String::from("%"),
+                    linenum,
+                }),
+                ('^', _) => tokens.push_back(TokenType {
+                    token: Token::BitwiseXor,
+                    val: String::from("^"),
+                    linenum,
+                }),
+                (':', _) => tokens.push_back(TokenType {
+                    token: Token::Colon,
+                    val: String::from(":"),
+                    linenum,
+                }),
+                ('?', _) => tokens.push_back(TokenType {
+                    token: Token::Question,
+                    val: String::from("?"),
+                    linenum,
+                }),
+                _ => return Err(TokenizeError::UnknownToken(multi)),
+            },
+        };
     }
+
     Ok(tokens.tokens)
 }
 
@@ -363,15 +427,18 @@ mod test {
             vec![
                 TokenType {
                     token: Token::OpenBrace,
-                    val: String::from("{")
+                    val: String::from("{"),
+                    linenum: 1
                 },
                 TokenType {
                     token: Token::CloseBrace,
-                    val: String::from("}")
+                    val: String::from("}"),
+                    linenum: 1
                 },
                 TokenType {
                     token: Token::Dollar,
-                    val: String::from("$")
+                    val: String::from("$"),
+                    linenum: 1
                 }
             ]
         );
@@ -384,15 +451,18 @@ mod test {
             vec![
                 TokenType {
                     token: Token::And,
-                    val: "&&".to_string()
+                    val: "&&".to_string(),
+                    linenum: 1
                 },
                 TokenType {
                     token: Token::Or,
-                    val: String::from("||")
+                    val: String::from("||"),
+                    linenum: 1
                 },
                 TokenType {
                     token: Token::BitwiseRight,
-                    val: String::from(">>")
+                    val: String::from(">>"),
+                    linenum: 1
                 }
             ]
         );
