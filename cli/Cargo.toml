@@ -1,5 +1,5 @@
 [package]
-name = "torqc"
+name = "zetac"
 version = "0.1.0"
 authors = ["Varun Potti <potti.varun07@gmail.com>", "Carter Snook <cartersnook04@gmail.com>"]
 edition = "2018"

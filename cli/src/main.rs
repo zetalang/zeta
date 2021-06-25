@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<(), anyhow::Error> {
         return Ok(());
     }
     if app.has_flag(&["--version", "-v"]) {
-        println!("torqc v{}", utils::VERSION.bright_green().bold());
+        println!("zetac v{}", utils::VERSION.bright_green().bold());
         exit(0);
     }
     cmd.run(app).await?;

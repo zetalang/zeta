@@ -3,24 +3,24 @@
 </p>
 
 <div style="text-align:center">
-<img src="https://img.shields.io/github/last-commit/torq-lang/torqc?label=Last%20Commit"/>
-<img src="https://img.shields.io/github/license/torq-lang/torqc?label=License" />
-<img src="https://img.shields.io/github/downloads/torq-lang/torqc/total?label=Downloads" />
+<img src="https://img.shields.io/github/last-commit/zetacli/zetac?label=Last%20Commit"/>
+<img src="https://img.shields.io/github/license/zetacli/zetac?label=License" />
+<img src="https://img.shields.io/github/downloads/zetacli/zetac/total?label=Downloads" />
 <img src="https://img.shields.io/github/languages/code-size/torq-lang/torqc?label=Code%20Size" />
-<img src="https://img.shields.io/github/stars/torq-lang/torqc?label=Stars&logo=github" />
-<img src="https://img.shields.io/tokei/lines/github/torq-lang/torqc" />
+<img src="https://img.shields.io/github/stars/zetacli/zetac?label=Stars&logo=github" />
+<img src="https://img.shields.io/tokei/lines/github/zetacli/zetac" />
 <a href="https://discord.com/invite/wY9NsfGFDP">
   <img src="https://img.shields.io/discord/852756512060342342?color=7389D8&label=Discord&logo=discord&logoColor=ffffff" alt="discord - users online" />
 </a>
 </div>
 
-# Torq
+# Zeta
 
-## What makes Torq the goto language for creating CLI's?
+## What makes Zeta the goto language for creating CLI's?
 
 - Smaller Executables
 - Inbuilt argument and flag parser
-- Your code will work anywhere in any OS
+- Your path seperators are automatically corrected according to the OS
 - Fast and by fast we mean Lightning fast
 - Better error handling
   - We only show errors which the user understands
@@ -29,24 +29,24 @@
 
 ## Installation
 
-Here are some guides on how to install `torqc` onto your local machine.
+Here are some guides on how to install `zetac` onto your local machine.
 
 ### Install via Cargo
 
 1. Clone and navigate into the project in some way onto your local machine. Here is how you can do it via Git:
 
 ```sh
-> git clone https://github.com/torq-lang/torqc
-> cd torqc
+> git clone https://github.com/zetacli/zetac.git zetac
+> cd zetac
 ```
 
-2. Install and build the `torqc` binary via the following command.
+2. Install and build the `zetac` binary via the following command.
 
 ```sh
 > cargo install --path cli
 ```
 
-After that, you should be able to run `torqc --version` to get the current version of `torqc` that you have installed. If that does not work, we advise joining our [Discord](#discord) and asking for help in there.
+After that, you should be able to run `zetac --version` to get the current version of `zetac` that you have installed. If that does not work, we advise joining our [Discord](#discord) and asking for help in there.
 
 ## Credits
 

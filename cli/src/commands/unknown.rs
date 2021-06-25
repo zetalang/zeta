@@ -13,7 +13,7 @@ pub struct Compile;
 impl Command for Compile {
     fn help() -> String {
         format!(
-            r#"torqc {}
+            r#"zetac {}
     
 Usage: {} {} {}
 Commands:
@@ -26,7 +26,7 @@ Flags:
   {asterisk} {} - Compiles to rust code
   "#,
             VERSION.bright_green().bold(),
-            "torqc".bright_green().bold(),
+            "zetac".bright_green().bold(),
             "[commands]".bright_purple(),
             "[flags]".bright_purple(),
             "<filename>".bright_blue(),

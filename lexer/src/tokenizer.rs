@@ -5,6 +5,10 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
     let mut linenum = 1;
     while let Some(&c) = tokens.peek() {
         match c {
+            '\n' => {
+                linenum += 1;
+                tokens.t_drop()
+            }
             '{' => tokens.push(TokenType {
                 token: Token::OpenBrace,
                 val: String::from("{"),
@@ -36,10 +40,6 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
                 linenum,
             }),
             ' ' | '\t' | '\r' => tokens.t_drop(),
-            '\n' => {
-                linenum += 1;
-                tokens.t_drop()
-            }
             'a'..='z' | 'A'..='Z' => {
                 let word: &str = &tokens.get_string(|x| x.is_ascii() && x.is_alphanumeric());
                 match word {

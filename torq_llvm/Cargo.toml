@@ -1,6 +1,6 @@
 [package]
 
-name = "torq_llvm"
+name = "zeta_llvm"
 version = "0.0.1"
 authors = ["Jauhien Piatlicki <jauhien@gentoo.org>", "Varun Potti <potti.varun07@gmail.com>"]
 build = "build.rs"

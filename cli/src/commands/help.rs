@@ -19,7 +19,7 @@ pub struct Help;
 impl Command for Help {
     fn help() -> String {
         format!(
-            r#"torqc {}
+            r#"zetac {}
     
 Displays help information.
 Usage: {} {} {}
@@ -27,7 +27,7 @@ Commands:
   {} {} - Compiles the given file 
   "#,
             VERSION.bright_green().bold(),
-            "torqc".bright_green().bold(),
+            "zetac".bright_green().bold(),
             "[commands]".bright_purple(),
             "[flags]".bright_purple(),
             "*".bright_magenta().bold(),

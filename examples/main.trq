@@ -1,5 +1,8 @@
-fn main () { // test 
-// 	int a = 1
-// 	str i = "asda"
-	let i = Input("ma", true)
+fn async asd (abc: bool): bool { 
+	return abc
+}
+
+
+fn main() {
+	bool i = asd(true)
 }
