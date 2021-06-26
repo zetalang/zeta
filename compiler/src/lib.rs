@@ -105,7 +105,7 @@ impl Compiler for RustCompiler {
             } else if function.return_type == Type::Mlstr || function.return_type == Type::Str {
                 t = "str";
             }
-            if t.is_empty() {
+            if !t.is_empty() {
                 f.ret(t);
             }
             for arg in 0..function.arguments.len() {
