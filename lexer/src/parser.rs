@@ -47,6 +47,14 @@ impl Parser {
         }
     }
 
+    fn peek_tt(&mut self) -> Option<TokenType> {
+        if let Some(token) = self.next() {
+            self.push(Some(token.clone()));
+            Some(token)
+        } else {
+            None
+        }
+    }
     fn drop(&mut self, count: usize) {
         for _ in 0..count {
             self.next();
@@ -74,7 +82,7 @@ impl Parser {
             ref t if t == &token.token => Ok(token.token),
             other => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::AnyIdentifier,
-
+                filename: self.file.clone(),
                 received: other,
                 linenum: line,
             }),
@@ -97,6 +105,7 @@ impl Parser {
             Token::Keyword(ref k) if k == keyword => Ok(()),
             other => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::Newline,
+                filename: self.file.clone(),
                 received: other,
                 linenum: line
             }),
@@ -110,6 +119,7 @@ impl Parser {
             Token::Identifier(n) => Ok(n),
             other => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::AnyIdentifier,
+                filename: self.file.clone(),
                 received: other,
                 linenum: line,
             }),
@@ -199,14 +209,14 @@ impl Parser {
         self.match_token(Token::OpenParen)?;
         let arguments: Vec<Variable> = match self.peek() {
             Some(Token::CloseParen) => Vec::new(),
-            _ => self.parse_arguments()?,
+            _ => self.parse_arguments(&name)?,
         };
 
         self.match_token(Token::CloseParen)?;
         let return_type = match self.peek().unwrap() {
             Token::Colon => {
                 self.match_token(Token::Colon)?;
-                self.parse_return()?
+                self.parse_return(&name)?
             }
             _ => Type::Void,
         };
@@ -230,14 +240,18 @@ impl Parser {
         })
     }
 
-    fn parse_return(&mut self) -> Result<Type, ParseError> {
-        let typ = match self.peek() {
-            Some(Token::Keyword(Keyword::Bool)) => Ok(Type::Bool),
-            Some(Token::Keyword(Keyword::MLstr)) => Ok(Type::Mlstr),
-            Some(Token::Keyword(Keyword::Int)) => Ok(Type::Int),
-            Some(Token::Keyword(Keyword::String)) => Ok(Type::Str),
-            Some(Token::Keyword(Keyword::Void)) => Ok(Type::Void),
-            _ => Err(ParseError::AbsentReturnType),
+    fn parse_return(&mut self, fnname: &str) -> Result<Type, ParseError> {
+        let typ = match self.peek_tt() {
+            Some(TokenType{token: Token::Keyword(Keyword::Bool), val: _, linenum: _}) => Ok(Type::Bool),
+            Some(TokenType{token: Token::Keyword(Keyword::MLstr), val: _, linenum: _}) => Ok(Type::Mlstr),
+            Some(TokenType{token: Token::Keyword(Keyword::Int), val: _, linenum: _}) => Ok(Type::Int),
+            Some(TokenType{token: Token::Keyword(Keyword::String), val: _, linenum: _}) => Ok(Type::Str),
+            Some(TokenType{token: Token::Keyword(Keyword::Void), val: _, linenum: _}) => Ok(Type::Void),
+            other => Err(ParseError::AbsentReturnType{
+                filename: self.file.clone(),
+                fnname: fnname.into(),
+                linenum: other.unwrap().linenum,
+            }),
         };
 
         if typ.is_ok() {
@@ -332,6 +346,7 @@ impl Parser {
             received => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::Token(Token::OpenParen),
                 received: received.token,
+                filename: self.file.clone(),
                 linenum: received.linenum 
             }),
         }
@@ -350,6 +365,7 @@ impl Parser {
             }
             received => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::Token(Token::OpenParen),
+                filename: self.file.clone(),
                 received: received.token,
                 linenum: received.linenum
             }),
@@ -785,6 +801,7 @@ impl Parser {
                 Some(received) => Err(ParseError::UnexpectedToken {
                     expected: ParserDescriptor::AnyVariable,
                     received: received.token,
+                    filename: self.file.clone(),
                     linenum: received.linenum
                 }),
                 _ => Err(ParseError::Unknown),
@@ -810,7 +827,7 @@ impl Parser {
         Ok(arguments)
     }
 
-    fn parse_arguments(&mut self) -> Result<Vec<Variable>, ParseError> {
+    fn parse_arguments(&mut self, fnname: &str) -> Result<Vec<Variable>, ParseError> {
         let mut arguments = Vec::new();
         while self.peek_token(Token::CloseParen).is_err() {
             let name = self.match_identifier()?;
@@ -820,7 +837,7 @@ impl Parser {
                 Some(Token::Keyword(Keyword::String)) => "str",
                 Some(Token::Keyword(Keyword::MLstr)) => "mlstr",
                 Some(Token::Keyword(Keyword::Bool)) => "bool",
-                _ => panic!("Error"),
+                _ => panic!("Function {} has wrong argument type", name),
             };
             let size = match self.next() {
                 Some(TokenType {
@@ -843,9 +860,11 @@ impl Parser {
                     val: _,
                     linenum: line,
                 }) => Ok(Size::Byte),
-                _ => Err(ParseError::UnexpectedType {
+                other => Err(ParseError::UnexpectedType {
                     expected: Type::Int,
                     received: Type::Char,
+                    filename: self.file.clone(),
+                    linenum: other.unwrap().linenum
                 }),
             }?;
             arguments.push(Variable {

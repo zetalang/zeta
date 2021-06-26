@@ -9,7 +9,7 @@ pub enum TokenizeError {
         c: char,
         linenum: i32
     },
-    #[error("invalid integer")]
+    #[error("invalid integer ")]
     InvalidInteger(#[from] std::num::ParseIntError),
 }
 
@@ -20,18 +20,28 @@ pub enum ParseError {
         linenum: i32,
         filename: Box<str>,
     },
-    #[error("expected {expected:?} got {received:?}: in line: {linenum:?}")]
+    #[error("expected {expected:?} got {received:?}: in {filename:}:{linenum:?}")]
     UnexpectedToken {
         expected: ParserDescriptor,
         received: Token,
         linenum: i32,
+        filename: Box<str>
     },
-    #[error("expected {expected:?} got {received:?}")]
-    UnexpectedType { expected: Type, received: Type },
+    #[error("expected {expected:?} got {received:?} {filename:}:{linenum:?}")]
+    UnexpectedType { 
+        expected: Type,
+         received: Type,  
+        linenum: i32,
+        filename: Box<str>
+    },
     #[error("expected {expected:?} to be present")]
     AbsentToken { expected: ParserDescriptor },
-    #[error("expected return type to be present")]
-    AbsentReturnType,
+    #[error("expected return type to be present in function: {fnname:?}, File: {filename:}:{linenum:}")]
+    AbsentReturnType{
+        fnname: Box<str>,
+        linenum: i32,
+        filename: Box<str>
+    },
     #[error("error tokenizing")]
     TokenizeError(#[from] TokenizeError),
     #[error("unknown error")]

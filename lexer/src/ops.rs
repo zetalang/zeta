@@ -49,7 +49,7 @@ pub struct Function {
 pub enum Expression {
     BinOp(BinOp, Box<Expression>, Box<Expression>),
     UnOp(UnOp, Box<Expression>),
-    Int(u32),
+    Int(u64),
     Char(u64),
     MLStr(u64),
     FunctionCall(String, Vec<Expression>),

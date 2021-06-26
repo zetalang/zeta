@@ -171,8 +171,8 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
                 let word = tokens.get_string(|x| x.is_ascii() && (x.is_digit(16) || x == &'x'));
 
                 #[allow(clippy::manual_strip)]
-                let int: u32 = if word.starts_with("0x") {
-                    u32::from_str_radix(&word[2..], 16)?
+                let int: u64 = if word.starts_with("0x") {
+                    u64::from_str_radix(&word[2..], 16)?
                 } else {
                     word.parse()?
                 };

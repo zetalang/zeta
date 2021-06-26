@@ -76,7 +76,7 @@ pub enum Keyword {
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Value {
-    Int(u32),
+    Int(u64),
     Char(String),
     MLStr(u64),
 }
