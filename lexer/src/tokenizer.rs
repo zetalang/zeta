@@ -144,7 +144,7 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
                 tokens.p_next();
                 let t = tokens.get_string(|s| (s != &'`'));
                 tokens.push(TokenType {
-                    token: Token::Identifier(t),
+                    token: Token::Literal(Value::MLStr(t)),
                     val: String::from("`"),
                     linenum,
                 })
@@ -153,7 +153,7 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
                 tokens.p_next();
                 let t = tokens.get_string(|s| (s != &'"'));
                 tokens.push(TokenType {
-                    token: Token::Identifier(t),
+                    token: Token::Literal(Value::Char(t)),
                     val: String::from('"'),
                     linenum,
                 })
@@ -162,7 +162,7 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
                 tokens.p_next();
                 let t = tokens.get_string(|s| (s != &'\''));
                 tokens.push(TokenType {
-                    token: Token::Identifier(t),
+                    token: Token::Literal(Value::Char(t)),
                     val: String::from("'"),
                     linenum,
                 })

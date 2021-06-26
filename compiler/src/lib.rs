@@ -2,7 +2,7 @@
 use codegen::{Function as CodegenFunc, Scope};
 use lexer::{Expression, Program, Statement, Type, Variable};
 
-pub trait Compiler {
+pub trait Compiler { 
     fn new(program: Program) -> Self;
     fn compile(&self) -> String;
 }
@@ -30,6 +30,20 @@ impl RustCompiler {
                                 s = s + "" + &name.to_string();
                             } else {
                                 s = s + "," + &name.to_string();
+                            }
+                        }
+                        Expression::MLStr(name) => {
+                            if i == 0 {
+                                s = "\"".to_owned() + &s + "" + &name + "\"";
+                            } else {
+                                s =     "\"".to_owned() + &s + "," + &name + "\"";
+                            }
+                        }
+                        Expression::Char(name) => {
+                            if i == 0 {
+                                s = "\"".to_owned() + &s + "" + &name + "\"";
+                            } else {
+                                s =     "\"".to_owned() + &s + "," + &name + "\"";
                             }
                         }
                         _ => unimplemented!(),
