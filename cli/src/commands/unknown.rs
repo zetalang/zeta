@@ -65,12 +65,9 @@ Flags:
             .chars()
             .without_comments(languages::rust())
             .collect::<String>();
-        let tokenize = tokenize(&preprocessed).context("Failed to tokenize the contents.")?;
-        let mut parse = Parser::new(tokenize);
-        let parsedval = parse.parse().unwrap_or_else(|e| {
-            println!("{:#?}", e);
-            std::process::exit(1)
-        });
+        let tokenize = tokenize(&preprocessed).context("Failed to tokenize the file contents.".red())?;
+        let mut parse = Parser::new(tokenize, filename.into());
+        let parsedval = parse.parse().context("ParserError: Failed to parse the contents".red().bold())?;
         println!("{:#?}", parsedval);
         if app.has_flag(&["--userust"]) {
             let rustcompiler = RustCompiler::new(parsedval.unwrap().0);

@@ -408,7 +408,7 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
                     val: String::from("?"),
                     linenum,
                 }),
-                _ => return Err(TokenizeError::UnknownToken(multi)),
+                _ => return Err(TokenizeError::UnknownToken{c: multi, linenum }),
             },
         };
     }

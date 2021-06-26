@@ -1,8 +1,3 @@
-fn async asd (abc: bool): bool { 
-	return abc
-}
-
-
 fn main() {
-	bool i = asd(true)
+	let a 
 }

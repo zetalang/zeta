@@ -11,15 +11,18 @@ pub struct Parser {
     tokens: Peekable<IntoIter<TokenType>>,
     rawtokens: Vec<TokenType>,
     peeked: Vec<TokenType>,
+    file: Box<str>
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<TokenType>) -> Parser {
+    pub fn new(tokens: Vec<TokenType>, file:Box<str> 
+    ) -> Parser {
         let ntoken = tokens.clone();
         Parser {
             tokens: tokens.into_iter().peekable(),
             rawtokens: ntoken,
             peeked: Vec::new(),
+            file: file.to_owned()
         }
     }
 
@@ -65,11 +68,15 @@ impl Parser {
     }
 
     fn match_token(&mut self, token: Token) -> Result<Token, ParseError> {
-        match self.next_token().token {
-            ref t if t == &token => Ok(token),
+        let token = self.next_token();
+        let line = token.linenum;
+        match token.token {
+            ref t if t == &token.token => Ok(token.token),
             other => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::AnyIdentifier,
+
                 received: other,
+                linenum: line,
             }),
         }
     }
@@ -84,22 +91,27 @@ impl Parser {
     }
 
     fn match_keyword(&mut self, keyword: &Keyword) -> Result<(), ParseError> {
-        let token = self.next_token().token;
-        match token {
+        let token = self.next_token();
+        let line = token.linenum;
+        match token.token {
             Token::Keyword(ref k) if k == keyword => Ok(()),
             other => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::Newline,
                 received: other,
+                linenum: line
             }),
         }
     }
 
     fn match_identifier(&mut self) -> Result<String, ParseError> {
-        match self.next_token().token {
+        let token = self.next_token();
+        let line = token.linenum;
+        match token.token {
             Token::Identifier(n) => Ok(n),
             other => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::AnyIdentifier,
                 received: other,
+                linenum: line,
             }),
         }
     }
@@ -299,8 +311,8 @@ impl Parser {
     }
 
     fn parse_if_statement(&mut self) -> Result<Statement, ParseError> {
-        match self.next_token().token {
-            Token::OpenParen => {
+        match self.next_token() {
+            TokenType{token: Token::OpenParen,linenum: l, val: _} => {
                 let condition = self.parse_expression()?;
                 self.match_token(Token::CloseParen)?;
                 let if_body = self.parse_statement()?;
@@ -319,14 +331,16 @@ impl Parser {
             }
             received => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::Token(Token::OpenParen),
-                received,
+                received: received.token,
+                linenum: received.linenum 
             }),
         }
     }
 
     fn parse_while_statement(&mut self) -> Result<Statement, ParseError> {
-        match self.next_token().token {
-            Token::OpenParen => {
+        let token = self.next_token(); 
+        match token{
+            TokenType{token: Token::OpenParen, val: _, linenum: _} => {
                 let condition = self.parse_expression()?;
                 self.match_token(Token::CloseParen)?;
                 Ok(Statement::While(
@@ -336,14 +350,15 @@ impl Parser {
             }
             received => Err(ParseError::UnexpectedToken {
                 expected: ParserDescriptor::Token(Token::OpenParen),
-                received,
+                received: received.token,
+                linenum: received.linenum
             }),
         }
     }
 
     fn parse_declare(&mut self, size: Size, t: &str) -> Result<Statement, ParseError> {
-        match (self.next_token().token, self.peek()) {
-            (Token::Identifier(name), Some(Token::Assign)) => {
+        match (self.next_token(), self.peek()) {
+            (TokenType{token: Token::Identifier(name), val: _, linenum: _}, Some(Token::Assign)) => {
                 self.drop(1);
                 let exp = self.parse_expression()?;
                 Ok(Statement::Declare(
@@ -355,7 +370,10 @@ impl Parser {
                     Some(exp),
                 ))
             }
-            _ => Err(ParseError::UnassignedVariable),
+            other => Err(ParseError::UnassignedVariable{
+                linenum: other.0.linenum,
+                filename: self.file.clone()
+            }),
         }
     }
 
@@ -767,10 +785,14 @@ impl Parser {
                 Some(received) => Err(ParseError::UnexpectedToken {
                     expected: ParserDescriptor::AnyVariable,
                     received: received.token,
+                    linenum: received.linenum
                 }),
                 _ => Err(ParseError::Unknown),
             },
-            _ => Err(ParseError::UnassignedVariable),
+            other => Err(ParseError::UnassignedVariable{
+                linenum: other.0.unwrap().linenum,
+                filename: self.file.clone(),
+            }),
         }
     }
 

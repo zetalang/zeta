@@ -134,7 +134,7 @@ mod tests {
     #[test]
     fn it_works() {
         let tokens = tokenize("const x = 23").unwrap();
-        let mut parser = Parser::new(tokens);
+        let mut parser = Parser::new(tokens, Box::new("".to_owned()));
         let token = parser.parse().unwrap();
         let compiler = RustCompiler::new(token.unwrap().0);
     }
