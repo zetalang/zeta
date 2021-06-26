@@ -61,6 +61,13 @@ impl RustCompiler {
             Expression::Int(num) => {
                 format!("{}", num)
             }
+            Expression::MLStr(name) => {
+                    "\"".to_owned() + &name + "\""
+            }
+            Expression::Char(name) => {
+                    "\"".to_owned() + &name + "\""
+            }
+
             other => unimplemented!(),
         }
     }
