@@ -58,6 +58,9 @@ impl RustCompiler {
                     n.to_string()
                 }
             }
+            Expression::Bool(b) => {
+                format!("{}", b)
+            }
             Expression::Int(num) => {
                 format!("{}", num)
             }

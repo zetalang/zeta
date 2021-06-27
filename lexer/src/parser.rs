@@ -76,12 +76,12 @@ impl Parser {
     }
 
     fn match_token(&mut self, token: Token) -> Result<Token, ParseError> {
-        let token = self.next_token();
-        let line = token.linenum;
-        match token.token {
-            ref t if t == &token.token => Ok(token.token),
+        let t= self.next_token();
+        let line = t.linenum;
+        match t.token {
+            ref t if t == &token => Ok(t.to_owned()),
             other => Err(ParseError::UnexpectedToken {
-                expected: ParserDescriptor::AnyIdentifier,
+                expected: ParserDescriptor::Token(token),
                 filename: self.file.clone(),
                 received: other,
                 linenum: line,
