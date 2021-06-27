@@ -65,7 +65,7 @@ Flags:
             .chars()
             .without_comments(languages::rust())
             .collect::<String>();
-        let tokenize = tokenize(&preprocessed).context("Failed to tokenize the file contents.".red())?;
+        let tokenize = tokenize(&preprocessed).context("Failed to tokenize the file contents.".red().bold())?;
         let mut parse = Parser::new(tokenize, filename.into());
         let parsedval = parse.parse().context("ParserError: Failed to parse the contents".red().bold())?;
         println!("{:#?}", parsedval);
