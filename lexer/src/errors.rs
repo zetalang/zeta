@@ -27,10 +27,11 @@ pub enum ParseError {
         linenum: i32,
         filename: Box<str>
     },
-    #[error("expected {expected:?} got {received:?} {filename:}:{linenum:?}")]
+    #[error("expected {expected:?} got {received:?} {filename:}:{linenum:?}\n\tIn function {fnname:}")]
     UnexpectedType { 
-        expected: Type,
-         received: Type,  
+        expected: Box<str>,
+        received: Token, 
+        fnname: Box<str>, 
         linenum: i32,
         filename: Box<str>
     },
@@ -44,6 +45,6 @@ pub enum ParseError {
     },
     #[error("error tokenizing")]
     TokenizeError(#[from] TokenizeError),
-    #[error("unknown error")]
+    #[error("An unkown error occured \n\t NOTE: If this continues open an issue in https://github.com/zetacli/zetac/issues")]
     Unknown,
 }

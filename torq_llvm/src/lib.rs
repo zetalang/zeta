@@ -166,7 +166,7 @@ fn test_ee() {
             (ee, module)
         },
         Err(error) => {
-            panic!("either: {:?}", error)
+            ("either: {:?}", error)
         }
     };
 

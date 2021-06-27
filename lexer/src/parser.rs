@@ -832,41 +832,42 @@ impl Parser {
         while self.peek_token(Token::CloseParen).is_err() {
             let name = self.match_identifier()?;
             self.match_token(Token::Colon)?;
-            let t = match self.peek() {
-                Some(Token::Keyword(Keyword::Int)) => "int",
-                Some(Token::Keyword(Keyword::String)) => "str",
-                Some(Token::Keyword(Keyword::MLstr)) => "mlstr",
-                Some(Token::Keyword(Keyword::Bool)) => "bool",
-                _ => panic!("Function {} has wrong argument type", name),
-            };
-            let size = match self.next() {
+            let size = match self.peek_tt() {
                 Some(TokenType {
                     token: Token::Keyword(Keyword::Int),
                     val: _,
-                    linenum: line,
+                    linenum: _line,
                 }) => Ok(Size::Int),
                 Some(TokenType {
                     token: Token::Keyword(Keyword::String),
                     val: _,
-                    linenum: line,
+                    linenum: _line,
                 }) => Ok(Size::Byte),
                 Some(TokenType {
                     token: Token::Keyword(Keyword::MLstr),
                     val: _,
-                    linenum: line,
+                    linenum: _line,
                 }) => Ok(Size::Byte),
                 Some(TokenType {
                     token: Token::Keyword(Keyword::Bool),
                     val: _,
-                    linenum: line,
+                    linenum: _line,
                 }) => Ok(Size::Byte),
                 other => Err(ParseError::UnexpectedType {
-                    expected: Type::Int,
-                    received: Type::Char,
+                    expected: "Int(int) String(str) MLStr(mlstr) or Bool(bool)".into(),
+                    received: other.clone().unwrap().token,
                     filename: self.file.clone(),
+                    fnname: fnname.into(),
                     linenum: other.unwrap().linenum
                 }),
             }?;
+            let t = match self.next_token() {
+                TokenType{token: Token::Keyword(Keyword::Int), val: _, linenum: _} => "int",
+                TokenType{token: Token::Keyword(Keyword::String), val: _, linenum: _} => "str",
+                TokenType{token: Token::Keyword(Keyword::MLstr), val: _, linenum: _} => "mlstr",
+                TokenType{token: Token::Keyword(Keyword::Bool), val: _, linenum: _} => "bool",
+                other => panic!("Function {} has wrong argument type: Got {:#?}", name, other),
+            };
             arguments.push(Variable {
                 name,
                 size,

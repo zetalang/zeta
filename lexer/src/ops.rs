@@ -1,4 +1,4 @@
-use crate::{Token, TokenType};
+use crate::{Token, TokenType, errors::ParseError};
 pub type ParsingResult = Result<(Program, Vec<TokenType>), String>;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
