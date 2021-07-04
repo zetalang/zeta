@@ -4,10 +4,11 @@ use crate::{ParserDescriptor, Token, Type};
 
 #[derive(Error, Debug)]
 pub enum TokenizeError {
-    #[error("invalid token {c:?}, in line {linenum:?}")]
+    #[error("invalid token {c:?}, in {filename:}:{linenum:?}")]
     UnknownToken{
         c: char,
-        linenum: i32
+        linenum: i32,
+        filename: Box<str>
     },
     #[error("invalid integer ")]
     InvalidInteger(#[from] std::num::ParseIntError),
@@ -34,6 +35,10 @@ pub enum ParseError {
         fnname: Box<str>, 
         linenum: i32,
         filename: Box<str>
+    },
+    #[error("{msg:}")]
+    EndOfLine {
+        msg: Box<str>
     },
     #[error("expected {expected:?} to be present")]
     AbsentToken { expected: ParserDescriptor },

@@ -4,7 +4,9 @@ use crate::{
     Statement, Token, TokenType, Type, Value, Variable,
 };
 use std::iter::Peekable;
+use std::process;
 use std::vec::IntoIter;
+use colored::Colorize;
 
 #[derive(Debug)]
 pub struct Parser {
@@ -807,7 +809,11 @@ impl Parser {
                 _ => Err(ParseError::Unknown),
             },
             other => Err(ParseError::UnassignedVariable{
-                linenum: other.0.unwrap().linenum,
+                linenum: other.0.unwrap_or_else(||{
+                    eprintln!("{} {}", "Reached End of line: \n".red().bold(),
+                        "NOTE: If you want help for this error consider opening an issue here https://github.com/zetacli/zetac/issues".blue().bold());
+                    process::exit(1);
+                }).linenum,
                 filename: self.file.clone(),
             }),
         }

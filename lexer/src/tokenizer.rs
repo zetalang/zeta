@@ -1,6 +1,6 @@
 use crate::{errors::TokenizeError, *};
 
-pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
+pub fn tokenize(contents: &str, fname: &str) -> Result<Vec<TokenType>, TokenizeError> {
     let mut tokens = TokenParser::new(contents);
     let mut linenum = 1;
     while let Some(&c) = tokens.peek() {
@@ -408,7 +408,7 @@ pub fn tokenize(contents: &str) -> Result<Vec<TokenType>, TokenizeError> {
                     val: String::from("?"),
                     linenum,
                 }),
-                _ => return Err(TokenizeError::UnknownToken{c: multi, linenum }),
+                _ => return Err(TokenizeError::UnknownToken{c: multi, linenum, filename: fname.into()}),
             },
         };
     }
@@ -423,7 +423,7 @@ mod test {
     #[test]
     fn single_char_ops() {
         assert_eq!(
-            tokenize("{}$").unwrap(),
+            tokenize("{}$", "").unwrap(),
             vec![
                 TokenType {
                     token: Token::OpenBrace,
@@ -447,7 +447,7 @@ mod test {
     #[test]
     fn multi_char_ops() {
         assert_eq!(
-            tokenize("&&||>>").unwrap(),
+            tokenize("&&||>>", "").unwrap(),
             vec![
                 TokenType {
                     token: Token::And,

@@ -1,3 +1,3 @@
-fn main(a:bool): asdads {
-	let a = "asdasd"
+fn main() {
+	bool a = "asdasds"
 }

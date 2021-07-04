@@ -1,11 +1,6 @@
+use super::Compiler;
 use codegen::{Function as CodegenFunc, Scope};
 use lexer::{Expression, Program, Statement, Type, Variable};
-
-pub trait Compiler {
-    fn new(program: Program) -> Self;
-    fn compile(&self) -> String;
-}
-
 pub struct RustCompiler {
     program: Program,
 }
@@ -15,13 +10,34 @@ impl RustCompiler {
         match exp {
             Expression::FunctionCall(varname, fnargs) => {
                 let mut s = String::new();
-                for i in 0..fnargs.len() {
+                for (i, _exp) in fnargs.iter().enumerate() {
                     match &fnargs[i] {
                         Expression::Variable(name) => {
                             if i == 0 {
                                 s = s + "" + &name;
                             } else {
                                 s = s + "," + &name;
+                            }
+                        }
+                        Expression::Bool(name) => {
+                            if i == 0 {
+                                s = s + "" + &name.to_string();
+                            } else {
+                                s = s + "," + &name.to_string();
+                            }
+                        }
+                        Expression::MLStr(name) => {
+                            if i == 0 {
+                                s = "\"".to_owned() + &s + "" + &name + "\"";
+                            } else {
+                                s = "\"".to_owned() + &s + "," + &name + "\"";
+                            }
+                        }
+                        Expression::Char(name) => {
+                            if i == 0 {
+                                s = "\"".to_owned() + &s + "" + &name + "\"";
+                            } else {
+                                s = "\"".to_owned() + &s + "," + &name + "\"";
                             }
                         }
                         _ => unimplemented!(),
@@ -33,19 +49,26 @@ impl RustCompiler {
                 if var_type == "str" {
                     format!("\"{}\"", n)
                 } else {
-                    format!("{}", n)
+                    n.to_string()
                 }
+            }
+            Expression::Bool(b) => {
+                format!("{}", b)
             }
             Expression::Int(num) => {
                 format!("{}", num)
-            },
-            _ => unimplemented!(),
+            }
+            Expression::MLStr(name) => "\"".to_owned() + &name + "\"",
+            Expression::Char(name) => "\"".to_owned() + &name + "\"",
+
+            other => unimplemented!(),
         }
     }
 
     fn compile_statement(&self, statement: &Statement) -> String {
         match statement {
             Statement::Declare(var, Some(exp)) => {
+                // panic!("{:#?}", exp);
                 format!("let {} = {};", var.name, self.compile_expr(exp, &var.t))
             }
             _ => unimplemented!(),
@@ -68,23 +91,20 @@ impl Compiler for RustCompiler {
         let mut scope = Scope::new();
 
         for statement in globals.iter() {
-            match statement {
-                Statement::Declare(Variable { name, .. }, Some(expr)) => {
-                    scope.raw(
-                        format!(
-                            "const {}: &str = {:#?};", /* TODO don't hardcode &str */
-                            name,
-                            match expr {
-                                Expression::Variable(value) => {
-                                    value
-                                }
-                                _ => unimplemented!(),
+            if let Statement::Declare(Variable { name, .. }, Some(expr)) = statement {
+                scope.raw(
+                    format!(
+                        "const {}: &str = {:#?};", /* TODO don't hardcode &str */
+                        name,
+                        match expr {
+                            Expression::Variable(value) => {
+                                value
                             }
-                        )
-                        .as_ref(),
-                    );
-                }
-                _ => {}
+                            _ => unimplemented!(),
+                        }
+                    )
+                    .as_ref(),
+                );
             }
         }
         for function in func.iter() {
@@ -96,12 +116,10 @@ impl Compiler for RustCompiler {
                 t = "str";
             } else if function.return_type == Type::Int {
                 t = "int";
-            } else if function.return_type == Type::Mlstr {
-                t = "str";
-            } else if function.return_type == Type::Str {
+            } else if function.return_type == Type::Mlstr || function.return_type == Type::Str {
                 t = "str";
             }
-            if t != "" {
+            if !t.is_empty() {
                 f.ret(t);
             }
             for arg in 0..function.arguments.len() {
@@ -118,7 +136,7 @@ impl Compiler for RustCompiler {
             f.set_async(function.is_async);
             scope.push_fn(f);
         }
-        return scope.to_string();
+        scope.to_string()
     }
 }
 
@@ -129,8 +147,8 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let tokens = tokenize("const x = 23").unwrap();
-        let mut parser = Parser::new(tokens);
-        let compiler = RustCompiler::new(parser.parse().unwrap());
+        let tokens = tokenize("const x = 23", "").unwrap();
+        let mut parser = Parser::new(tokens, "".into());
+        let compiler = RustCompiler::new(parser.parse().unwrap().unwrap().0);
     }
 }

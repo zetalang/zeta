@@ -3,10 +3,18 @@ use crate::{utils::App, utils::VERSION};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use colored::Colorize;
-use compiler::{Compiler, RustCompiler};
+use compiler::{compiler::Compile as CodeCompiler, rustcompiler::RustCompiler, Compiler};
 use lexer::{tokenize, Parser};
+use llvm_sys::{
+    core::{LLVMContextCreate, LLVMCreateBuilderInContext, LLVMModuleCreateWithNameInContext},
+    execution_engine::LLVMGetFunctionAddress,
+};
 use no_comment::{languages, IntoWithoutComments as _};
-use std::{io::Read, sync::Arc, vec};
+use std::{
+    io::{Read, Write},
+    sync::Arc,
+    vec,
+};
 pub struct Compile;
 
 #[async_trait]
@@ -65,13 +73,25 @@ Flags:
             .chars()
             .without_comments(languages::rust())
             .collect::<String>();
-        let tokenize = tokenize(&preprocessed).context("Failed to tokenize the file contents.".red().bold())?;
+        let tokenize = tokenize(&preprocessed, &filename)
+            .context("Failed to tokenize the file contents.".red().bold())?;
         let mut parse = Parser::new(tokenize, filename.into());
-        let parsedval = parse.parse().context("ParserError: Failed to parse the contents".red().bold())?;
-        println!("{:#?}", parsedval);
+        let parsedval = parse
+            .parse()
+            .context("ParserError: Failed to parse the contents".red().bold())?;
+        // println!("{:#?}", parsedval);
         if app.has_flag(&["--userust"]) {
             let rustcompiler = RustCompiler::new(parsedval.unwrap().0);
             println!("{}", rustcompiler.compile());
+        } else {
+            unsafe {
+                let context = LLVMContextCreate();
+                let module =
+                    LLVMModuleCreateWithNameInContext(b"master\0".as_ptr() as *const _, context);
+                let builder = LLVMCreateBuilderInContext(context);
+                let codecompiler = CodeCompiler::new(context, module, builder);
+                let i = codecompiler.new_func("sum\0".to_string());
+            }
         }
         Ok(())
     }
