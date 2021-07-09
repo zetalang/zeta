@@ -1,9 +1,10 @@
 [package]
-name = "zeta_llvm"
+name = "zeta_gcc"
 version = "0.1.0"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-llvm-sys = "120.0.0"
+gccjit={path="../gccjit"}
+lexer={path="../lexer"}

@@ -2,6 +2,7 @@
 members = [
 	"lexer",
 	"cli",
-	"zeta_llvm",
 	"compiler",
+	"gccjit",
+	"zeta_gcc"
 ]

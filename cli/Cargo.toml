@@ -16,5 +16,6 @@ no-comment = "0.0.3"
 tokio = { version = "1.5.0", features = ["full"] }
 lexer = { path = "../lexer" }
 compiler = { path = "../compiler" }
-
-llvm-sys = "120.0.0"
+serde_json = "1.0.64"
+gccjit = {path="../gccjit"}
+zeta_gcc={path="../zeta_gcc"}

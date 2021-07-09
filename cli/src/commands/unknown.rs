@@ -1,20 +1,44 @@
 use super::Command;
 use crate::{utils::App, utils::VERSION};
-use anyhow::{Context, Result};
+use anyhow::{Context as ic, Result};
 use async_trait::async_trait;
 use colored::Colorize;
-use compiler::{compiler::Compile as CodeCompiler, rustcompiler::RustCompiler, Compiler};
+use compiler::{rustcompiler::RustCompiler, Compiler};
+use gccjit::Context;
 use lexer::{tokenize, Parser};
-use llvm_sys::{
-    core::{LLVMContextCreate, LLVMCreateBuilderInContext, LLVMModuleCreateWithNameInContext},
-    execution_engine::LLVMGetFunctionAddress,
-};
 use no_comment::{languages, IntoWithoutComments as _};
-use std::{
-    io::{Read, Write},
-    sync::Arc,
-    vec,
-};
+use std::{io::Read, sync::Arc, vec};
+
+use std::default::Default;
+extern crate gccjit;
+
+use gccjit::OptimizationLevel;
+// fn test() {
+//     let int_ty = context.new_type::<i32>();
+//     let parameter = context.new_parameter(None, int_ty, "x");
+//     let fun = context.new_function(
+//         None,
+//         FunctionType::Exported,
+//         int_ty,
+//         &[parameter],
+//         "square",
+// //         false,
+//     );
+//     let block = fun.new_block("main_block");
+//     let parm = fun.get_param(0).to_rvalue();
+//     let square = parm * parm;
+//     block.end_with_return(None, square);
+//     let result = context.compile();
+//     let func = result.get_function("square");
+//     let jit_compiled_fun: extern "C" fn(i32) -> i32 = if !func.is_null() {
+//         unsafe { mem::transmute(func) }
+//     } else {
+//         panic!("failed to retrieve function")
+//     };
+//     println!("the square of 2 is: {}", jit_compiled_fun(2));
+//     println!("the square of 10 is: {}", jit_compiled_fun(10));
+//     println!("the square of -2 is: {}", jit_compiled_fun(-2));
+// }
 pub struct Compile;
 
 #[async_trait]
@@ -79,19 +103,16 @@ Flags:
         let parsedval = parse
             .parse()
             .context("ParserError: Failed to parse the contents".red().bold())?;
+        let p1 = parsedval.clone().unwrap().0;
         // println!("{:#?}", parsedval);
         if app.has_flag(&["--userust"]) {
             let rustcompiler = RustCompiler::new(parsedval.unwrap().0);
             println!("{}", rustcompiler.compile());
         } else {
-            unsafe {
-                let context = LLVMContextCreate();
-                let module =
-                    LLVMModuleCreateWithNameInContext(b"master\0".as_ptr() as *const _, context);
-                let builder = LLVMCreateBuilderInContext(context);
-                let codecompiler = CodeCompiler::new(context, module, builder);
-                let i = codecompiler.new_func("sum\0".to_string());
-            }
+            let context = Context::default();
+            context.set_dump_code_on_compile(true);
+            context.set_optimization_level(OptimizationLevel::Aggressive);
+            zeta_gcc::compile(context, p1)
         }
         Ok(())
     }

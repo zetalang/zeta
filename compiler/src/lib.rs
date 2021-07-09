@@ -1,4 +1,3 @@
-pub mod compiler;
 pub mod rustcompiler;
 use lexer::Program;
 pub trait Compiler {

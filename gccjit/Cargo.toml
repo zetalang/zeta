@@ -1,0 +1,15 @@
+[package]
+name = "gccjit"
+version = "1.0.0"
+authors = ["Sean Gillespie <sean.william.g@gmail.com>"]
+description = "Higher-level Rust bindings for libgccjit."
+keywords = ["compiler", "jit", "gcc"]
+license = "GPL-3.0"
+repository = "https://github.com/swgillespie/gccjit.rs"
+documentation = "http://swgillespie.github.io/gccjit.rs/gccjit/"
+readme = "README.md"
+
+
+[dependencies]
+gccjit_sys = "0.0.1"
+

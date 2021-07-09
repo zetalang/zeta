@@ -1,32 +1,33 @@
-use crate::{Token, TokenType, errors::ParseError};
+use crate::{errors::ParseError, Token, TokenType};
 pub type ParsingResult = Result<(Program, Vec<TokenType>), String>;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Size {
     Int,
     Byte,
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
 pub struct Variable {
     pub name: String,
     pub t: String,
     pub size: Size,
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
 pub struct Import {
     pub name: Vec<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Program {
     pub imports: Vec<Import>,
     pub func: Vec<Function>,
     pub globals: Vec<Statement>,
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
 pub enum Type {
     Bool,
     Str,
@@ -36,7 +37,7 @@ pub enum Type {
     Char,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Function {
     pub is_async: bool,
     pub name: String,
@@ -45,7 +46,7 @@ pub struct Function {
     pub statements: Vec<Statement>,
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
 pub enum Expression {
     BinOp(BinOp, Box<Expression>, Box<Expression>),
     UnOp(UnOp, Box<Expression>),
@@ -61,7 +62,7 @@ pub enum Expression {
     Ternary(Box<Expression>, Box<Expression>, Box<Expression>),
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
 pub enum Statement {
     Declare(Variable, Option<Expression>),
     Return(Expression),
@@ -71,14 +72,14 @@ pub enum Statement {
     Compound(Vec<Statement>),
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
 pub enum UnOp {
     Negation,
     BitComp,
     LogicalNeg,
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
 pub enum BinOp {
     Addition,
     Subtraction,
