@@ -10,16 +10,16 @@ jobs:
           - stable
           - nightly
     steps:
-      - name: Delete GCC
-        uses: ./
-        with:
-          command: apt remove gcc
-          working-directory: examples/custom-command
 
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.toolchain }}
+      - name: Delete GCC
+        uses: ./
+        with:
+          command: apt remove gcc
+
       - name: build
         uses: actions-rs/cargo@v1
         with:
