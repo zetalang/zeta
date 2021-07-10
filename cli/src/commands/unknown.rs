@@ -4,41 +4,46 @@ use anyhow::{Context as ic, Result};
 use async_trait::async_trait;
 use colored::Colorize;
 use compiler::{rustcompiler::RustCompiler, Compiler};
-use gccjit::Context;
+use gccjit::{Context, FunctionType, ToRValue};
 use lexer::{tokenize, Parser};
 use no_comment::{languages, IntoWithoutComments as _};
+use std::mem;
 use std::{io::Read, sync::Arc, vec};
 
 use std::default::Default;
 extern crate gccjit;
 
 use gccjit::OptimizationLevel;
-// fn test() {
-//     let int_ty = context.new_type::<i32>();
-//     let parameter = context.new_parameter(None, int_ty, "x");
-//     let fun = context.new_function(
-//         None,
-//         FunctionType::Exported,
-//         int_ty,
-//         &[parameter],
-//         "square",
-// //         false,
-//     );
-//     let block = fun.new_block("main_block");
-//     let parm = fun.get_param(0).to_rvalue();
-//     let square = parm * parm;
-//     block.end_with_return(None, square);
-//     let result = context.compile();
-//     let func = result.get_function("square");
-//     let jit_compiled_fun: extern "C" fn(i32) -> i32 = if !func.is_null() {
-//         unsafe { mem::transmute(func) }
-//     } else {
-//         panic!("failed to retrieve function")
-//     };
-//     println!("the square of 2 is: {}", jit_compiled_fun(2));
-//     println!("the square of 10 is: {}", jit_compiled_fun(10));
-//     println!("the square of -2 is: {}", jit_compiled_fun(-2));
-// }
+fn test() {
+    let context = Context::default();
+    context.set_dump_code_on_compile(true);
+    context.set_optimization_level(OptimizationLevel::Aggressive);
+    // context.compile_to_file(gccjit::OutputKind::ObjectFile, "a.out");
+    let int_ty = context.new_type::<i32>();
+    let parameter = context.new_parameter(None, int_ty, "x");
+    let fun = context.new_function(
+        None,
+        FunctionType::Exported,
+        int_ty,
+        &[parameter],
+        "main",
+        false,
+    );
+    let block = fun.new_block("main_block");
+    let parm = fun.get_param(0).to_rvalue();
+    let square = parm * parm;
+    block.end_with_return(None, square);
+    let result = context.compile();
+    // let func = result.get_function("main");
+    // let jit_compiled_fun: extern "C" fn(i32) -> i32 = if !func.is_null() {
+    //     unsafe { mem::transmute(func) }
+    // } else {
+    //     panic!("failed to retrieve function")
+    // };
+    // println!("the square of 2 is: {}", jit_compiled_fun(2));
+    // println!("the square of 10 is: {}", jit_compiled_fun(10));
+    // println!("the square of -2 is: {}", jit_compiled_fun(-2));
+}
 pub struct Compile;
 
 #[async_trait]
@@ -113,6 +118,7 @@ Flags:
             context.set_dump_code_on_compile(true);
             context.set_optimization_level(OptimizationLevel::Aggressive);
             zeta_gcc::compile(context, p1)
+            // test()
         }
         Ok(())
     }
