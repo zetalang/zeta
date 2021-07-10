@@ -10,12 +10,16 @@ jobs:
           - stable
           - nightly
     steps:
-      - name: Install Clang
-        uses: egor-tensin/setup-clang@v1
+
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.toolchain }}
+      - name: Delete GCC
+        uses: ./
+        with:
+          command: apt remove gcc
+
       - name: build
         uses: actions-rs/cargo@v1
         with:
