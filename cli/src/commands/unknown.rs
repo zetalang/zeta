@@ -9,6 +9,7 @@ use lexer::{tokenize, Parser};
 use no_comment::{languages, IntoWithoutComments as _};
 use std::mem;
 use std::{io::Read, sync::Arc, vec};
+use zeta_gcc::Compile as zCompile;
 
 use std::default::Default;
 extern crate gccjit;
@@ -115,10 +116,10 @@ Flags:
             println!("{}", rustcompiler.compile());
         } else {
             println!("{:#?}", parsedval);
-            let context = Context::default();
-            context.set_dump_code_on_compile(true);
-            context.set_optimization_level(OptimizationLevel::Aggressive);
-            zeta_gcc::compile(context, p1)
+            let gcc = zCompile::new();
+            gcc.compile(p1);
+
+            // zeta_gcc::compile(context, p1)
             // test()
         }
         Ok(())
