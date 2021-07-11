@@ -408,7 +408,13 @@ pub fn tokenize(contents: &str, fname: &str) -> Result<Vec<TokenType>, TokenizeE
                     val: String::from("?"),
                     linenum,
                 }),
-                _ => return Err(TokenizeError::UnknownToken{c: multi, linenum, filename: fname.into()}),
+                _ => {
+                    return Err(TokenizeError::UnknownToken {
+                        c: multi,
+                        linenum,
+                        filename: fname.into(),
+                    })
+                }
             },
         };
     }

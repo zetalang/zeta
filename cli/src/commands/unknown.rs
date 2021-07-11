@@ -114,6 +114,7 @@ Flags:
             let rustcompiler = RustCompiler::new(parsedval.unwrap().0);
             println!("{}", rustcompiler.compile());
         } else {
+            println!("{:#?}", parsedval);
             let context = Context::default();
             context.set_dump_code_on_compile(true);
             context.set_optimization_level(OptimizationLevel::Aggressive);

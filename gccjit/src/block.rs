@@ -1,15 +1,15 @@
-use std::marker::PhantomData;
+use context::Context;
+use function::{self, Function};
+use gccjit_sys;
+use location::{self, Location};
+use lvalue::{self, ToLValue};
+use object::{self, Object, ToObject};
+use rvalue::{self, ToRValue};
 use std::ffi::CString;
 use std::fmt;
-use std::ptr;
+use std::marker::PhantomData;
 use std::mem;
-use context::Context;
-use gccjit_sys;
-use object::{self, ToObject, Object};
-use function::{self, Function};
-use location::{self, Location};
-use rvalue::{self, ToRValue};
-use lvalue::{self, ToLValue};
+use std::ptr;
 
 /// BinaryOp is a enum representing the various binary operations
 /// that gccjit knows how to codegen.
@@ -26,7 +26,8 @@ pub enum BinaryOp {
     LogicalAnd,
     LogicalOr,
     LShift,
-    RShift
+    Comma,
+    RShift,
 }
 
 /// UnaryOp is an enum representing the various unary operations
@@ -36,7 +37,7 @@ pub enum UnaryOp {
     Minus,
     BitwiseNegate,
     LogicalNegate,
-    Abs
+    Abs,
 }
 
 /// ComparisonOp is an enum representing the various comparisons that
@@ -48,7 +49,7 @@ pub enum ComparisonOp {
     LessThan,
     LessThanEquals,
     GreaterThan,
-    GreaterThanEquals
+    GreaterThanEquals,
 }
 
 /// Block represents a basic block in gccjit. Blocks are created by functions.
@@ -58,7 +59,7 @@ pub enum ComparisonOp {
 #[derive(Copy, Clone)]
 pub struct Block<'ctx> {
     marker: PhantomData<&'ctx Context<'ctx>>,
-    ptr: *mut gccjit_sys::gcc_jit_block
+    ptr: *mut gccjit_sys::gcc_jit_block,
 }
 
 impl<'ctx> ToObject<'ctx> for Block<'ctx> {
@@ -87,115 +88,115 @@ impl<'ctx> Block<'ctx> {
 
     /// Evaluates the rvalue parameter and discards its result. Equivalent
     /// to (void)<expr> in C.
-    pub fn add_eval<T: ToRValue<'ctx>>(&self,
-                                       loc: Option<Location<'ctx>>,
-                                       value: T) {
+    pub fn add_eval<T: ToRValue<'ctx>>(&self, loc: Option<Location<'ctx>>, value: T) {
         let rvalue = value.to_rvalue();
         let loc_ptr = match loc {
-                Some(loc) => unsafe { location::get_ptr(&loc) },
-                None => ptr::null_mut()
-            };
+            Some(loc) => unsafe { location::get_ptr(&loc) },
+            None => ptr::null_mut(),
+        };
         unsafe {
-            gccjit_sys::gcc_jit_block_add_eval(self.ptr,
-                                               loc_ptr,
-                                               rvalue::get_ptr(&rvalue));
+            gccjit_sys::gcc_jit_block_add_eval(self.ptr, loc_ptr, rvalue::get_ptr(&rvalue));
         }
     }
 
     /// Assigns the value of an rvalue to an lvalue directly. Equivalent
     /// to <lvalue> = <rvalue> in C.
-    pub fn add_assignment<L: ToLValue<'ctx>, R: ToRValue<'ctx>>(&self,
-                                                                loc: Option<Location<'ctx>>,
-                                                                assign_target: L,
-                                                                value: R) {
+    pub fn add_assignment<L: ToLValue<'ctx>, R: ToRValue<'ctx>>(
+        &self,
+        loc: Option<Location<'ctx>>,
+        assign_target: L,
+        value: R,
+    ) {
         let lvalue = assign_target.to_lvalue();
         let rvalue = value.to_rvalue();
         let loc_ptr = match loc {
-                Some(loc) => unsafe { location::get_ptr(&loc) },
-                None => ptr::null_mut()
-            };
+            Some(loc) => unsafe { location::get_ptr(&loc) },
+            None => ptr::null_mut(),
+        };
         unsafe {
-            gccjit_sys::gcc_jit_block_add_assignment(self.ptr,
-                                                     loc_ptr,
-                                                     lvalue::get_ptr(&lvalue),
-                                                     rvalue::get_ptr(&rvalue));
+            gccjit_sys::gcc_jit_block_add_assignment(
+                self.ptr,
+                loc_ptr,
+                lvalue::get_ptr(&lvalue),
+                rvalue::get_ptr(&rvalue),
+            );
         }
     }
 
     /// Performs a binary operation on an LValue and an RValue, assigning
     /// the result of the binary operation to the LValue upon completion.
     /// Equivalent to the *=, +=, -=, etc. operator family in C.
-    pub fn add_assignment_op<L: ToLValue<'ctx>, R: ToRValue<'ctx>>(&self,
-                                                                   loc: Option<Location<'ctx>>,
-                                                                   assign_target: L,
-                                                                   op: BinaryOp,
-                                                                   value: R) {
+    pub fn add_assignment_op<L: ToLValue<'ctx>, R: ToRValue<'ctx>>(
+        &self,
+        loc: Option<Location<'ctx>>,
+        assign_target: L,
+        op: BinaryOp,
+        value: R,
+    ) {
         let lvalue = assign_target.to_lvalue();
         let rvalue = value.to_rvalue();
         let loc_ptr = match loc {
             Some(loc) => unsafe { location::get_ptr(&loc) },
-            None => ptr::null_mut()
+            None => ptr::null_mut(),
         };
         unsafe {
-            gccjit_sys::gcc_jit_block_add_assignment_op(self.ptr,
-                                                        loc_ptr,
-                                                        lvalue::get_ptr(&lvalue),
-                                                        mem::transmute(op),
-                                                        rvalue::get_ptr(&rvalue));
+            gccjit_sys::gcc_jit_block_add_assignment_op(
+                self.ptr,
+                loc_ptr,
+                lvalue::get_ptr(&lvalue),
+                mem::transmute(op),
+                rvalue::get_ptr(&rvalue),
+            );
         }
     }
 
     /// Adds a comment to a block. It's unclear from the documentation what
     /// this actually means.
-    pub fn add_comment<S: AsRef<str>>(&self,
-                       loc: Option<Location<'ctx>>,
-                       message: S) {
+    pub fn add_comment<S: AsRef<str>>(&self, loc: Option<Location<'ctx>>, message: S) {
         let message_ref = message.as_ref();
         let loc_ptr = match loc {
             Some(loc) => unsafe { location::get_ptr(&loc) },
-            None => ptr::null_mut()
+            None => ptr::null_mut(),
         };
         unsafe {
             let cstr = CString::new(message_ref).unwrap();
-            gccjit_sys::gcc_jit_block_add_comment(self.ptr,
-                                                  loc_ptr,
-                                                  cstr.as_ptr());
+            gccjit_sys::gcc_jit_block_add_comment(self.ptr, loc_ptr, cstr.as_ptr());
         }
     }
 
     /// Terminates a block by branching to one of two blocks, depending
     /// on the value of a conditional RValue.
-    pub fn end_with_conditional<T: ToRValue<'ctx>>(&self,
-                                loc: Option<Location<'ctx>>,
-                                cond: T,
-                                on_true: Block<'ctx>,
-                                on_false: Block<'ctx>) {
+    pub fn end_with_conditional<T: ToRValue<'ctx>>(
+        &self,
+        loc: Option<Location<'ctx>>,
+        cond: T,
+        on_true: Block<'ctx>,
+        on_false: Block<'ctx>,
+    ) {
         let cond_rvalue = cond.to_rvalue();
         let loc_ptr = match loc {
             Some(loc) => unsafe { location::get_ptr(&loc) },
-            None => ptr::null_mut()
+            None => ptr::null_mut(),
         };
         unsafe {
-            gccjit_sys::gcc_jit_block_end_with_conditional(self.ptr,
-                                                           loc_ptr,
-                                                           rvalue::get_ptr(&cond_rvalue),
-                                                           on_true.ptr,
-                                                           on_false.ptr);
+            gccjit_sys::gcc_jit_block_end_with_conditional(
+                self.ptr,
+                loc_ptr,
+                rvalue::get_ptr(&cond_rvalue),
+                on_true.ptr,
+                on_false.ptr,
+            );
         }
     }
 
     /// Terminates a block by unconditionally jumping to another block.
-    pub fn end_with_jump(&self,
-                         loc: Option<Location<'ctx>>,
-                         target: Block<'ctx>) {
+    pub fn end_with_jump(&self, loc: Option<Location<'ctx>>, target: Block<'ctx>) {
         let loc_ptr = match loc {
             Some(loc) => unsafe { location::get_ptr(&loc) },
-            None => ptr::null_mut()
+            None => ptr::null_mut(),
         };
         unsafe {
-            gccjit_sys::gcc_jit_block_end_with_jump(self.ptr,
-                                                    loc_ptr,
-                                                    target.ptr);
+            gccjit_sys::gcc_jit_block_end_with_jump(self.ptr, loc_ptr, target.ptr);
         }
     }
 
@@ -203,18 +204,18 @@ impl<'ctx> Block<'ctx> {
     /// the rvalue to be the return value of the function. This is equivalent
     /// to C's "return <expr>". This function can only be used to terminate
     /// a block within a function whose return type is not void.
-    pub fn end_with_return<T: ToRValue<'ctx>>(&self,
-                                              loc: Option<Location<'ctx>>,
-                                              ret: T) {
+    pub fn end_with_return<T: ToRValue<'ctx>>(&self, loc: Option<Location<'ctx>>, ret: T) {
         let ret_rvalue = ret.to_rvalue();
         let loc_ptr = match loc {
             Some(loc) => unsafe { location::get_ptr(&loc) },
-            None => ptr::null_mut()
+            None => ptr::null_mut(),
         };
         unsafe {
-            gccjit_sys::gcc_jit_block_end_with_return(self.ptr,
-                                                      loc_ptr,
-                                                      rvalue::get_ptr(&ret_rvalue));
+            gccjit_sys::gcc_jit_block_end_with_return(
+                self.ptr,
+                loc_ptr,
+                rvalue::get_ptr(&ret_rvalue),
+            );
         }
     }
 
@@ -225,11 +226,10 @@ impl<'ctx> Block<'ctx> {
     pub fn end_with_void_return(&self, loc: Option<Location<'ctx>>) {
         let loc_ptr = match loc {
             Some(loc) => unsafe { location::get_ptr(&loc) },
-            None => ptr::null_mut()
+            None => ptr::null_mut(),
         };
         unsafe {
-            gccjit_sys::gcc_jit_block_end_with_void_return(self.ptr,
-                                                           loc_ptr);
+            gccjit_sys::gcc_jit_block_end_with_void_return(self.ptr, loc_ptr);
         }
     }
 }
@@ -237,6 +237,6 @@ impl<'ctx> Block<'ctx> {
 pub unsafe fn from_ptr<'ctx>(ptr: *mut gccjit_sys::gcc_jit_block) -> Block<'ctx> {
     Block {
         marker: PhantomData,
-        ptr: ptr
+        ptr: ptr,
     }
 }
