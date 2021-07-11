@@ -25,7 +25,7 @@ impl Compile<'static> {
     pub fn new<'a>() -> Self {
         let context = Context::default();
         context.set_dump_code_on_compile(true);
-        context.set_optimization_level(OptimizationLevel::Aggressive);
+        context.set_optimization_level(OptimizationLevel::None);
         Self { context }
     }
     pub fn compile<'a>(&self, lexer: Program) {
@@ -188,7 +188,7 @@ impl Compile<'static> {
         for statement in statements.iter() {
             match statement {
                 Statement::Declare(a, b) => {
-                    let expr = self.compile_exp(b, block, fun);
+                    let expr = self.compile_exp(b, block, fun, Some(a.to_owned()));
                 }
                 Statement::Return(a) => todo!(),
                 Statement::If(_, _, _) => todo!(),
@@ -227,7 +227,13 @@ impl Compile<'static> {
         };
         (bnop, cop)
     }
-    fn compile_exp<'a>(&self, expr: &Option<Expression>, block: &Block, fun: &gFunc) {
+    fn compile_exp<'a>(
+        &self,
+        expr: &Option<Expression>,
+        block: &Block,
+        fun: &gFunc,
+        var: Option<Variable>,
+    ) {
         let (int_ty, bool_ty, void_ty, char_ty) = self.types();
 
         match expr {
@@ -235,8 +241,7 @@ impl Compile<'static> {
                 Expression::BinOp(a, b, c) => {
                     let binop = self.compile_binop(a);
                     let parm = fun.get_param(0).to_rvalue();
-                    let loc = fun.new_local(None, int_ty, "abc");
-                    println!("{:#?}", loc);
+                    let loc = fun.new_local(None, int_ty, var.unwrap().name);
                     match binop.0 {
                         Some(e) => block.add_assignment_op(None, loc, e, parm),
                         None => todo!(),
