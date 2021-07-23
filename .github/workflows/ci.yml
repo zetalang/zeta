@@ -16,9 +16,7 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
       - name: Install libgccjit
-        uses: ./
-        with:
-          command: apt install libgccjit-9-dev
+        run: sudo apt install libgccjit-9-dev
 
       - name: build
         uses: actions-rs/cargo@v1
