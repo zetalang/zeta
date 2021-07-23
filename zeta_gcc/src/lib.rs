@@ -1,10 +1,11 @@
 extern crate gccjit;
 
 use gccjit::{
-    Block, Context, Function as gFunc, FunctionType, OptimizationLevel, Parameter, ToLValue,
-    ToRValue, Type,
+    Block, Context, Function as gFunc, FunctionType, LValue, OptimizationLevel, Parameter, RValue,
+    ToLValue, ToRValue, Type,
 };
 use lexer::{BinOp, Expression, Function, Program, Statement, Variable};
+
 const MEMORY_SIZE: i32 = 1000;
 pub struct InitData<'a> {
     getchar: gFunc<'a>,
@@ -24,8 +25,8 @@ pub struct Compile<'a> {
 impl Compile<'static> {
     pub fn new<'a>() -> Self {
         let context = Context::default();
+        context.set_optimization_level(OptimizationLevel::Aggressive);
         context.set_dump_code_on_compile(true);
-        context.set_optimization_level(OptimizationLevel::None);
         Self { context }
     }
     pub fn compile<'a>(&self, lexer: Program) {
@@ -130,7 +131,7 @@ impl Compile<'static> {
                 arguments,
                 statements,
             } = func;
-            let r = match return_type {
+            let r: Type<'a> = match return_type {
                 lexer::Type::Bool => bool_ty,
                 lexer::Type::Str => todo!(),
                 lexer::Type::Void => void_ty,
@@ -151,7 +152,9 @@ impl Compile<'static> {
             let initi = self.init();
             let block = fun.new_block("entry");
             self.compile_statement(&block, statements, &fun, &initi);
-            block.end_with_void_return(None)
+            if return_type.to_owned() == lexer::Type::Void {
+                block.end_with_void_return(None)
+            }
         }
         self.context
             .compile_to_file(gccjit::OutputKind::Executable, "main")
@@ -185,12 +188,16 @@ impl Compile<'static> {
                 ],
             ),
         );
+        let mut val = None;
         for statement in statements.iter() {
             match statement {
                 Statement::Declare(a, b) => {
-                    let expr = self.compile_exp(b, block, fun, Some(a.to_owned()));
+                    val = self.compile_exp(b, block, fun, Some(a.to_owned()));
                 }
-                Statement::Return(a) => todo!(),
+                Statement::Return(a) => match val {
+                    Some(a) => block.end_with_return(None, a),
+                    None => block.end_with_void_return(None),
+                },
                 Statement::If(_, _, _) => todo!(),
                 Statement::While(_, _) => todo!(),
                 Statement::Exp(_) => todo!(),
@@ -228,24 +235,26 @@ impl Compile<'static> {
         (bnop, cop)
     }
     fn compile_exp<'a>(
-        &self,
+        &'a self,
         expr: &Option<Expression>,
         block: &Block,
-        fun: &gFunc,
+        fun: &'a gFunc<'a>,
         var: Option<Variable>,
-    ) {
+    ) -> Option<RValue<'a>> {
         let (int_ty, bool_ty, void_ty, char_ty) = self.types();
-
+        let mut rval = None;
+        let mut loc = None;
         match expr {
             Some(exp) => match exp {
                 Expression::BinOp(a, b, c) => {
                     let binop = self.compile_binop(a);
                     let parm = fun.get_param(0).to_rvalue();
-                    let loc = fun.new_local(None, int_ty, var.unwrap().name);
+                    loc = Some(fun.new_local(None, int_ty, var.unwrap().name));
                     match binop.0 {
-                        Some(e) => block.add_assignment_op(None, loc, e, parm),
+                        Some(e) => block.add_assignment_op(None, loc.unwrap(), e, parm),
                         None => todo!(),
-                    }
+                    };
+                    rval = Some(parm.clone());
                 }
                 Expression::UnOp(_, _) => todo!(),
                 Expression::Int(_) => todo!(),
@@ -253,13 +262,14 @@ impl Compile<'static> {
                 Expression::MLStr(_) => todo!(),
                 Expression::FunctionCall(_, _) => todo!(),
                 Expression::Bool(_) => todo!(),
-                Expression::Variable(_) => todo!(),
+                Expression::Variable(a) => rval = Some(loc.unwrap().to_rvalue()),
                 Expression::VariableRef(_) => todo!(),
                 Expression::Assign(_, _) => todo!(),
                 Expression::AssignPostfix(_, _) => todo!(),
                 Expression::Ternary(_, _, _) => todo!(),
             },
             None => todo!(),
-        }
+        };
+        rval
     }
 }

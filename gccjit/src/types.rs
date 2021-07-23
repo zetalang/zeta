@@ -1,10 +1,10 @@
-use std::marker::PhantomData;
 use std::fmt;
+use std::marker::PhantomData;
 
 use gccjit_sys;
 
-use context::Context;
 use context;
+use context::Context;
 use object;
 use object::{Object, ToObject};
 
@@ -16,7 +16,7 @@ use gccjit_sys::gcc_jit_types::*;
 #[derive(Copy, Clone)]
 pub struct Type<'ctx> {
     marker: PhantomData<&'ctx Context<'ctx>>,
-    ptr: *mut gccjit_sys::gcc_jit_type
+    ptr: *mut gccjit_sys::gcc_jit_type,
 }
 
 impl<'ctx> ToObject<'ctx> for Type<'ctx> {
@@ -38,24 +38,18 @@ impl<'ctx> fmt::Debug for Type<'ctx> {
 impl<'ctx> Type<'ctx> {
     /// Given a type T, creates a type to *T, a pointer to T.
     pub fn make_pointer(self) -> Type<'ctx> {
-        unsafe {
-            from_ptr(gccjit_sys::gcc_jit_type_get_pointer(self.ptr))
-        }
+        unsafe { from_ptr(gccjit_sys::gcc_jit_type_get_pointer(self.ptr)) }
     }
 
     /// Given a type T, creates a type of const T.
     pub fn make_const(self) -> Type<'ctx> {
-        unsafe {
-            from_ptr(gccjit_sys::gcc_jit_type_get_const(self.ptr))
-        }
+        unsafe { from_ptr(gccjit_sys::gcc_jit_type_get_const(self.ptr)) }
     }
 
     /// Given a type T, creates a new type of volatile T, which
     /// has the semantics of C's volatile.
     pub fn make_volatile(self) -> Type<'ctx> {
-        unsafe {
-            from_ptr(gccjit_sys::gcc_jit_type_get_volatile(self.ptr))
-        }
+        unsafe { from_ptr(gccjit_sys::gcc_jit_type_get_volatile(self.ptr)) }
     }
 }
 
@@ -78,7 +72,7 @@ macro_rules! typeable_def {
                 }
             }
         }
-    }
+    };
 }
 
 typeable_def!((), GCC_JIT_TYPE_VOID);
@@ -94,12 +88,16 @@ macro_rules! typeable_int_def {
             fn get_type<'a, 'ctx>(ctx: &'a Context<'ctx>) -> Type<'a> {
                 unsafe {
                     let ctx_ptr = context::get_ptr(ctx);
-                    let ptr = gccjit_sys::gcc_jit_context_get_int_type(ctx_ptr, $num_bytes, $signed as i32);
+                    let ptr = gccjit_sys::gcc_jit_context_get_int_type(
+                        ctx_ptr,
+                        $num_bytes,
+                        $signed as i32,
+                    );
                     from_ptr(ptr)
                 }
             }
         }
-    }
+    };
 }
 
 typeable_int_def!(i8, 1, true);
@@ -141,7 +139,7 @@ impl<T> Typeable for *const T {
 pub unsafe fn from_ptr<'ctx>(ptr: *mut gccjit_sys::gcc_jit_type) -> Type<'ctx> {
     Type {
         marker: PhantomData,
-        ptr: ptr
+        ptr: ptr,
     }
 }
 

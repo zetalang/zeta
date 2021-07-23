@@ -1,6 +1,7 @@
 use context::Context;
 use function::{self, Function};
 use gccjit_sys;
+use gccjit_sys::gcc_jit_location;
 use location::{self, Location};
 use lvalue::{self, ToLValue};
 use object::{self, Object, ToObject};
@@ -132,7 +133,7 @@ impl<'ctx> Block<'ctx> {
         assign_target: L,
         op: BinaryOp,
         value: R,
-    ) {
+    ) -> *mut gcc_jit_location {
         let lvalue = assign_target.to_lvalue();
         let rvalue = value.to_rvalue();
         let loc_ptr = match loc {
@@ -148,6 +149,7 @@ impl<'ctx> Block<'ctx> {
                 rvalue::get_ptr(&rvalue),
             );
         }
+        loc_ptr
     }
 
     /// Adds a comment to a block. It's unclear from the documentation what

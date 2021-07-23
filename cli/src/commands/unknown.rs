@@ -115,7 +115,7 @@ Flags:
             let rustcompiler = RustCompiler::new(parsedval.unwrap().0);
             println!("{}", rustcompiler.compile());
         } else {
-            println!("{:#?}", parsedval);
+            println!("{:#?}", parsedval.unwrap().0);
             let gcc = zCompile::new();
             gcc.compile(p1);
 

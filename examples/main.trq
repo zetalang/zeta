@@ -1,3 +1,5 @@
-fn test(l: int){
-    let i = 1 + 1
+fn test(l: int): int{
+    let asdasdasd = l + l
+    let u = 2+2
+    return u
 }
