@@ -1,10 +1,14 @@
 extern crate gccjit;
+mod globalvals;
+use std::{collections::HashMap, convert::TryInto};
 
 use gccjit::{
     Block, Context, Function as gFunc, FunctionType, LValue, OptimizationLevel, Parameter, RValue,
-    ToLValue, ToRValue, Type,
+    ToRValue, Type,
 };
 use lexer::{BinOp, Expression, Function, Program, Statement, Variable};
+
+use crate::globalvals::GlobVals;
 
 const MEMORY_SIZE: i32 = 1000;
 pub struct InitData<'a> {
@@ -101,7 +105,9 @@ impl Compile<'static> {
             "main",
             false,
         );
-        let size = self.context.new_rvalue_from_int(int_ty, MEMORY_SIZE);
+        let size = self
+            .context
+            .new_rvalue_from_int(int_ty, MEMORY_SIZE.try_into().unwrap());
         let array = f_main.new_local(None, initialize.memory_ty, "memory");
         let current_block = f_main.new_block("entry_block");
         let zero_access = self.context.new_array_access(
@@ -149,12 +155,14 @@ impl Compile<'static> {
                 name,
                 false,
             );
+            let mut gv = GlobVals::new();
             let initi = self.init();
             let block = fun.new_block("entry");
-            self.compile_statement(&block, statements, &fun, &initi);
+            self.compile_statement(&block, statements, &fun, &initi, &mut gv);
             if return_type.to_owned() == lexer::Type::Void {
                 block.end_with_void_return(None)
             }
+            println!("{:?}", gv);
         }
         self.context
             .compile_to_file(gccjit::OutputKind::Executable, "main")
@@ -164,11 +172,14 @@ impl Compile<'static> {
         &'a self,
         block: &Block,
         statements: &Vec<Statement>,
-        fun: &gFunc,
+        fun: &'a gccjit::Function<'a>,
         init: &InitData,
+        gvars: &mut GlobVals<'a>,
     ) {
         let (int_ty, bool_ty, void_ty, char_ty) = self.types();
-        let size = self.context.new_rvalue_from_int(int_ty, MEMORY_SIZE);
+        let size = self
+            .context
+            .new_rvalue_from_int(int_ty, MEMORY_SIZE.try_into().unwrap());
         let array = fun.new_local(None, init.memory_ty, "memory");
         let memory_ptr = fun.new_local(None, int_ty, "memory_ptr");
         let zero_access = self.context.new_array_access(
@@ -192,7 +203,7 @@ impl Compile<'static> {
         for statement in statements.iter() {
             match statement {
                 Statement::Declare(a, b) => {
-                    val = self.compile_exp(b, block, fun, Some(a.to_owned()));
+                    val = self.compile_exp(b, block, fun, Some(a.to_owned()), gvars);
                 }
                 Statement::Return(a) => match val {
                     Some(a) => block.end_with_return(None, a),
@@ -200,7 +211,9 @@ impl Compile<'static> {
                 },
                 Statement::If(_, _, _) => todo!(),
                 Statement::While(_, _) => todo!(),
-                Statement::Exp(_) => todo!(),
+                Statement::Exp(exp) => {
+                    val = self.compile_exp(&Some(exp.to_owned()), block, fun, None, gvars)
+                }
                 Statement::Compound(_) => todo!(),
             }
         }
@@ -240,31 +253,52 @@ impl Compile<'static> {
         block: &Block,
         fun: &'a gFunc<'a>,
         var: Option<Variable>,
+        gvars: &mut GlobVals<'a>,
     ) -> Option<RValue<'a>> {
         let (int_ty, bool_ty, void_ty, char_ty) = self.types();
         let mut rval = None;
         let mut loc = None;
+
         match expr {
             Some(exp) => match exp {
                 Expression::BinOp(a, b, c) => {
+                    let name = match var.clone() {
+                        Some(a) => a.name,
+                        None => "somevar".to_string(),
+                    };
+                    loc = Some(fun.new_local(None, int_ty, name.clone()));
+
                     let binop = self.compile_binop(a);
-                    let parm = fun.get_param(0).to_rvalue();
-                    loc = Some(fun.new_local(None, int_ty, var.unwrap().name));
+                    let parm = self
+                        .compile_exp(&Some(b.as_ref().to_owned()), block, fun, None, gvars)
+                        .unwrap();
+
                     match binop.0 {
                         Some(e) => block.add_assignment_op(None, loc.unwrap(), e, parm),
                         None => todo!(),
                     };
+                    let mut hashmap: HashMap<String, LValue> = HashMap::new();
+                    hashmap.insert(name, loc.clone().unwrap());
+                    gvars.add_val(hashmap);
                     rval = Some(parm.clone());
                 }
                 Expression::UnOp(_, _) => todo!(),
-                Expression::Int(_) => todo!(),
-                Expression::Char(_) => todo!(),
+                Expression::Int(a) => rval = Some(self.context.new_rvalue_from_int(int_ty, *a)),
+                Expression::Char(s) => todo!(),
                 Expression::MLStr(_) => todo!(),
                 Expression::FunctionCall(_, _) => todo!(),
                 Expression::Bool(_) => todo!(),
-                Expression::Variable(a) => rval = Some(loc.unwrap().to_rvalue()),
+                Expression::Variable(_) => rval = Some(fun.get_param(0).to_rvalue()),
                 Expression::VariableRef(_) => todo!(),
-                Expression::Assign(_, _) => todo!(),
+                Expression::Assign(a, b) => {
+                    let parm =
+                        self.compile_exp(&Some(b.as_ref().to_owned()), block, fun, None, gvars);
+                    loc = Some(fun.new_local(None, int_ty, a));
+                    // let mut hashmap: HashMap<String, LValue> = HashMap::new();
+                    // hashmap.insert(a.to_string(), loc.clone().unwrap());
+                    // let i = gvars.add_val(hashmap);
+                    block.add_assignment(None, loc.unwrap(), parm.unwrap())
+                }
                 Expression::AssignPostfix(_, _) => todo!(),
                 Expression::Ternary(_, _, _) => todo!(),
             },

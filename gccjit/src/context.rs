@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::default::Default;
 use std::ffi::CString;
 use std::marker::PhantomData;
@@ -634,12 +635,12 @@ impl<'ctx> Context<'ctx> {
     }
 
     /// Creates a new RValue from a given int value.
-    pub fn new_rvalue_from_int<'a>(&'a self, ty: types::Type<'a>, value: i32) -> RValue<'a> {
+    pub fn new_rvalue_from_int<'a>(&'a self, ty: types::Type<'a>, value: u64) -> RValue<'a> {
         unsafe {
             let ptr = gccjit_sys::gcc_jit_context_new_rvalue_from_int(
                 self.ptr,
                 types::get_ptr(&ty),
-                value,
+                value.try_into().unwrap(),
             );
             rvalue::from_ptr(ptr)
         }
