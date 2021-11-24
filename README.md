@@ -3,12 +3,12 @@
 </p>
 
 <div style="text-align:center">
-<img src="https://img.shields.io/github/last-commit/zetacli/zetac?label=Last%20Commit"/>
-<img src="https://img.shields.io/github/license/zetacli/zetac?label=License" />
-<img src="https://img.shields.io/github/downloads/zetacli/zetac/total?label=Downloads" />
-<img src="https://img.shields.io/github/languages/code-size/torq-lang/torqc?label=Code%20Size" />
-<img src="https://img.shields.io/github/stars/zetacli/zetac?label=Stars&logo=github" />
-<img src="https://img.shields.io/tokei/lines/github/zetacli/zetac" />
+<img src="https://img.shields.io/github/last-commit/zetalang/zeta?label=Last%20Commit"/>
+<img src="https://img.shields.io/github/license/zetalang/zeta?label=License" />
+<img src="https://img.shields.io/github/downloads/zetalang/zeta/total?label=Downloads" />
+<img src="https://img.shields.io/github/languages/code-size/zetalang/zeta?label=Code%20Size" />
+<img src="https://img.shields.io/github/stars/zetalang/zeta?label=Stars&logo=github" />
+<img src="https://img.shields.io/tokei/lines/github/zetalang/zeta" />
 <a href="https://discord.com/invite/wY9NsfGFDP">
   <img src="https://img.shields.io/discord/852756512060342342?color=7389D8&label=Discord&logo=discord&logoColor=ffffff" alt="discord - users online" />
 </a>
@@ -36,7 +36,7 @@ Here are some guides on how to install `zetac` onto your local machine.
 1. Clone and navigate into the project in some way onto your local machine. Here is how you can do it via Git:
 
 ```sh
-> git clone https://github.com/zetacli/zetac.git zetac
+> git clone https://github.com/zetalang/zeta.git zetac
 > cd zetac
 ```
 
